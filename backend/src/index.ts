@@ -3,6 +3,7 @@ import cors from "cors";
 import animalsRouter  from "./routes/animals";
 import entriesRouter  from "./routes/entries";
 import expensesRouter from "./routes/expenses";
+import authRouter     from "./routes/auth";
 
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
@@ -14,6 +15,7 @@ app.get("/health", (_req, res) =>
   res.json({ status: "ok", ts: new Date().toISOString() }),
 );
 
+app.use("/api/auth",     authRouter);
 app.use("/api/animals",  animalsRouter);
 app.use("/api/entries",  entriesRouter);
 app.use("/api/expenses", expensesRouter);

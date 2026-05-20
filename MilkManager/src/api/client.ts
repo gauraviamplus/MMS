@@ -18,6 +18,12 @@ async function req<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  auth: {
+    sendOtp:   (phone: string) =>
+      req<{ success: boolean; otp: string }>("/auth/send-otp", { method: "POST", body: JSON.stringify({ phone }) }),
+    verifyOtp: (phone: string, otp: string) =>
+      req<{ success: boolean; phone: string }>("/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp }) }),
+  },
   entries: {
     list: () =>
       req<DailyEntry[]>("/entries"),

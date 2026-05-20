@@ -1,6 +1,15 @@
 export type Language = "en" | "hi" | "mr";
 
 const en = {
+  // Auth
+  loginWelcome: "Welcome to", loginSubtitle: "Manage your dairy with ease",
+  phoneLabel: "Phone Number", phonePlaceholder: "Enter 10-digit number",
+  sendOtp: "Send OTP", verifyOtp: "Verify OTP", resendOtp: "Resend OTP",
+  otpSentTo: "OTP sent to", enterOtp: "Enter 6-digit OTP",
+  invalidPhone: "Enter a valid 10-digit phone number.",
+  invalidOtp: "Enter the 6-digit OTP.",
+  wrongOtp: "Invalid OTP. Please try again.",
+  otpExpired: "OTP expired. Request a new one.",
   // Navigation
   tabHome: "Home", tabEntries: "Entries", tabWeekly: "Weekly",
   tabMonthly: "Monthly", tabYearly: "Yearly", tabAnimals: "Animals", tabExpenses: "Expenses",
@@ -81,6 +90,14 @@ export type TranslationKeys = keyof typeof en;
 export const translations: Record<Language, typeof en> = {
   en,
   hi: {
+    loginWelcome: "स्वागत है", loginSubtitle: "अपनी डेयरी आसानी से प्रबंधित करें",
+    phoneLabel: "फ़ोन नंबर", phonePlaceholder: "10 अंकों का नंबर डालें",
+    sendOtp: "OTP भेजें", verifyOtp: "OTP सत्यापित करें", resendOtp: "OTP दोबारा भेजें",
+    otpSentTo: "OTP भेजा गया", enterOtp: "6 अंकों का OTP डालें",
+    invalidPhone: "वैध 10 अंकों का फ़ोन नंबर डालें।",
+    invalidOtp: "6 अंकों का OTP डालें।",
+    wrongOtp: "गलत OTP। पुनः प्रयास करें।",
+    otpExpired: "OTP समाप्त हो गया। नया OTP मंगाएं।",
     tabHome: "होम", tabEntries: "प्रविष्टियाँ", tabWeekly: "साप्ताहिक",
     tabMonthly: "मासिक", tabYearly: "वार्षिक", tabAnimals: "पशु", tabExpenses: "खर्च",
     cancel: "रद्द करें", save: "सहेजें", delete: "हटाएं", error: "त्रुटि",
@@ -145,6 +162,14 @@ export const translations: Record<Language, typeof en> = {
     monthCol: "माह", yearlyTotals: "वार्षिक योग",
   },
   mr: {
+    loginWelcome: "स्वागत आहे", loginSubtitle: "तुमची डेअरी सहज व्यवस्थापित करा",
+    phoneLabel: "फोन नंबर", phonePlaceholder: "10 अंकी नंबर टाका",
+    sendOtp: "OTP पाठवा", verifyOtp: "OTP सत्यापित करा", resendOtp: "OTP पुन्हा पाठवा",
+    otpSentTo: "OTP पाठवला", enterOtp: "6 अंकी OTP टाका",
+    invalidPhone: "योग्य 10 अंकी फोन नंबर टाका.",
+    invalidOtp: "6 अंकी OTP टाका.",
+    wrongOtp: "चुकीचा OTP. पुन्हा प्रयत्न करा.",
+    otpExpired: "OTP कालबाह्य झाला. नवीन OTP मागवा.",
     tabHome: "होम", tabEntries: "नोंदी", tabWeekly: "साप्ताहिक",
     tabMonthly: "मासिक", tabYearly: "वार्षिक", tabAnimals: "जनावरे", tabExpenses: "खर्च",
     cancel: "रद्द करा", save: "जतन करा", delete: "हटवा", error: "त्रुटी",
