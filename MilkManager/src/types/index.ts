@@ -68,6 +68,18 @@ export interface DashboardStats {
   pendingPayments: number;
 }
 
+// ─── Expense ──────────────────────────────────────────────────────────────────
+export type ExpenseCategory = "medicine" | "food" | "worker";
+
+export interface Expense {
+  id: string;
+  date: string;             // YYYY-MM-DD
+  category: ExpenseCategory;
+  amount: number;
+  workerName?: string;
+  note?: string;
+}
+
 // ─── Navigation ───────────────────────────────────────────────────────────────
 export type RootStackParamList = {
   Dashboard:  undefined;

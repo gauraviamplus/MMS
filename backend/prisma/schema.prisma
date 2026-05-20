@@ -7,6 +7,17 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+model Expense {
+  id        String   @id @default(cuid())
+  date      String   // YYYY-MM-DD
+  category    String   // "medicine" | "food" | "worker"
+  amount      Float
+  workerName  String?
+  note        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Animal {
   id        String   @id @default(cuid())
   name      String   @unique

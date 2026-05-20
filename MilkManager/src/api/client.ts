@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import type { DailyEntry } from "../types";
+import type { DailyEntry, Expense } from "../types";
 
 const host =
   Constants.expoConfig?.hostUri?.split(":")[0] ?? "localhost";
@@ -27,5 +27,15 @@ export const api = {
       req<DailyEntry>(`/entries/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     remove: (id: string) =>
       req<{ success: boolean }>(`/entries/${id}`, { method: "DELETE" }),
+  },
+  expenses: {
+    list: () =>
+      req<Expense[]>("/expenses"),
+    create: (data: Omit<Expense, "id">) =>
+      req<Expense>("/expenses", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: string, data: Omit<Expense, "id">) =>
+      req<Expense>(`/expenses/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (id: string) =>
+      req<{ success: boolean }>(`/expenses/${id}`, { method: "DELETE" }),
   },
 };
