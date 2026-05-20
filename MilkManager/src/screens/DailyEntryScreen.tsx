@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Plus, Pencil, Trash2, ClipboardList } from "lucide-react-native";
 import { useData } from "../context/DataContext";
+import { useLanguage } from "../context/LanguageContext";
 import type { DailyEntry } from "../types";
 import type { Animal } from "../data/animalsData";
 
@@ -31,7 +32,6 @@ function fmtDate(iso: string) {
     day: "numeric", month: "short", year: "numeric",
   });
 }
-
 function fmtDay(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short" });
 }
@@ -40,6 +40,7 @@ function fmtDay(iso: string) {
 function EntryCard({ entry, onEdit, onDelete }: {
   entry: DailyEntry; onEdit: (e: DailyEntry) => void; onDelete: (id: string) => void;
 }) {
+  const { t } = useLanguage();
   const isCow = entry.animalType === "cow";
   const accent = isCow ? C.primary : "#4F46E5";
   return (
@@ -49,11 +50,9 @@ function EntryCard({ entry, onEdit, onDelete }: {
       shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6,
       overflow: "hidden",
     }}>
-      {/* Left accent */}
       <View style={{ flexDirection: "row" }}>
         <View style={{ width: 4, backgroundColor: accent }} />
         <View style={{ flex: 1, padding: 14 }}>
-          {/* Row 1: Date + type badge */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ backgroundColor: C.gray100, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
@@ -62,14 +61,13 @@ function EntryCard({ entry, onEdit, onDelete }: {
               </View>
               <View style={{ backgroundColor: isCow ? C.cowBg : C.bufBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
                 <Text style={{ fontSize: 11, fontWeight: "700", color: isCow ? C.cowText : C.bufText, textTransform: "uppercase" }}>
-                  {isCow ? "🐄 Cow" : "🐃 Buffalo"}
+                  {isCow ? `🐄 ${t("cow")}` : `🐃 ${t("buffalo")}`}
                 </Text>
               </View>
             </View>
             <Text style={{ fontSize: 16, fontWeight: "800", color: C.green }}>₹{entry.totalAmount.toFixed(0)}</Text>
           </View>
 
-          {/* Row 2: Animal name + stats */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View>
               <Text style={{ fontSize: 15, fontWeight: "800", color: C.text }}>{entry.animalName}</Text>
@@ -100,6 +98,7 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
   visible: boolean; initial?: DailyEntry; animals: Animal[];
   onSave: (e: Omit<DailyEntry, "id">) => Promise<void>; onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const [date,      setDate]      = useState(initial?.date ?? new Date().toISOString().split("T")[0]);
   const [animalIdx, setAnimalIdx] = useState(() => Math.max(0, animals.findIndex(a => a.name === initial?.animalName)));
   const [quantity,  setQuantity]  = useState(initial?.quantity?.toString() ?? "");
@@ -131,15 +130,15 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
 
   async function handleSave() {
     const qty = parseFloat(quantity), r = parseFloat(rate);
-    if (!date || isNaN(qty) || qty <= 0) { Alert.alert("Error", "Enter valid date and quantity."); return; }
-    if (isNaN(r) || r <= 0)             { Alert.alert("Error", "Enter valid rate."); return; }
-    if (!animal)                         { Alert.alert("Error", "Select an animal."); return; }
+    if (!date || isNaN(qty) || qty <= 0) { Alert.alert(t("error"), t("errorValidDate")); return; }
+    if (isNaN(r) || r <= 0)             { Alert.alert(t("error"), t("errorValidRate")); return; }
+    if (!animal)                         { Alert.alert(t("error"), t("errorSelectAnimal")); return; }
     setSaving(true);
     try {
       await onSave({ date, animalType: animal.type as "cow" | "buffalo",
         animalName: animal.name, quantity: qty, rate: r,
         totalAmount: Math.round(qty * r * 100) / 100, notes: notes.trim() || undefined });
-    } catch { Alert.alert("Error", "Failed to save. Is the backend running?"); }
+    } catch { Alert.alert(t("error"), t("errorSaveFailed")); }
     finally { setSaving(false); }
   }
 
@@ -148,11 +147,9 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
       <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
           <View style={{ backgroundColor: C.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 36 }}>
-            <Text style={{ fontSize: 15, color: C.text, marginBottom: 20 }}>
-              No animals found. Add animals from the Animals tab first.
-            </Text>
+            <Text style={{ fontSize: 15, color: C.text, marginBottom: 20 }}>{t("noAnimalsFound")}</Text>
             <TouchableOpacity onPress={onClose} style={{ padding: 14, alignItems: "center", borderRadius: 14, backgroundColor: C.primary }}>
-              <Text style={{ color: "#fff", fontWeight: "700" }}>Close</Text>
+              <Text style={{ color: "#fff", fontWeight: "700" }}>{t("close")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -167,13 +164,13 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
           contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
           <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 20 }} />
           <Text style={{ fontSize: 20, fontWeight: "800", color: C.text, marginBottom: 24 }}>
-            {initial ? "Edit Entry" : "New Entry"}
+            {initial ? t("editEntry") : t("newEntry")}
           </Text>
 
-          <Text style={s.label}>Date (YYYY-MM-DD)</Text>
+          <Text style={s.label}>{t("dateLabel")}</Text>
           <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="2026-04-24" placeholderTextColor={C.gray400} />
 
-          <Text style={s.label}>Select Animal</Text>
+          <Text style={s.label}>{t("selectAnimal")}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
             {animals.map((a, i) => (
               <TouchableOpacity key={a.id} onPress={() => handleAnimalChange(i)}
@@ -191,35 +188,36 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
 
           <View style={{ flexDirection: "row", gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <Text style={s.label}>Rate (₹/L)</Text>
+              <Text style={s.label}>{t("rateLabel")}</Text>
               <TextInput style={s.input} value={rate} onChangeText={setRate} keyboardType="decimal-pad" placeholder="35" placeholderTextColor={C.gray400} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.label}>Quantity (L)</Text>
+              <Text style={s.label}>{t("quantityLabel")}</Text>
               <TextInput style={s.input} value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" placeholder="125.5" placeholderTextColor={C.gray400} />
             </View>
           </View>
 
           {quantity && rate && !isNaN(parseFloat(quantity)) && !isNaN(parseFloat(rate)) && (
             <View style={{ backgroundColor: "#F0FDF4", borderRadius: 12, padding: 12, marginBottom: 16, flexDirection: "row", justifyContent: "space-between" }}>
-              <Text style={{ color: C.textSub, fontSize: 13 }}>Total Amount</Text>
+              <Text style={{ color: C.textSub, fontSize: 13 }}>{t("totalAmount")}</Text>
               <Text style={{ color: C.green, fontWeight: "800", fontSize: 16 }}>
                 ₹{(parseFloat(quantity) * parseFloat(rate)).toFixed(2)}
               </Text>
             </View>
           )}
 
-          <Text style={s.label}>Notes (optional)</Text>
-          <TextInput style={[s.input, { marginBottom: 24 }]} value={notes} onChangeText={setNotes} placeholder="e.g. Morning milking" placeholderTextColor={C.gray400} />
+          <Text style={s.label}>{t("notesOptional")}</Text>
+          <TextInput style={[s.input, { marginBottom: 24 }]} value={notes} onChangeText={setNotes}
+            placeholder="e.g. Morning milking" placeholderTextColor={C.gray400} />
 
           <View style={{ flexDirection: "row", gap: 12 }}>
             <TouchableOpacity onPress={onClose}
               style={{ flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 2, borderColor: C.border, alignItems: "center" }}>
-              <Text style={{ color: C.gray700, fontWeight: "700", fontSize: 15 }}>Cancel</Text>
+              <Text style={{ color: C.gray700, fontWeight: "700", fontSize: 15 }}>{t("cancel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSave} disabled={saving}
               style={{ flex: 1, paddingVertical: 14, borderRadius: 14, backgroundColor: saving ? C.gray400 : C.primary, alignItems: "center" }}>
-              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{saving ? "Saving…" : "Save Entry"}</Text>
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{saving ? t("saving") : t("saveEntry")}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -231,6 +229,7 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function DailyEntryScreen() {
   const { entries, animals, addEntry, updateEntry, removeEntry, loading } = useData();
+  const { t } = useLanguage();
   const [modalOpen,  setModalOpen]  = useState(false);
   const [editTarget, setEditTarget] = useState<DailyEntry | undefined>();
 
@@ -247,15 +246,15 @@ export default function DailyEntryScreen() {
   async function handleDelete(id: string) {
     const doDelete = async () => {
       try { await removeEntry(id); }
-      catch { Alert.alert("Error", "Failed to delete entry."); }
+      catch { Alert.alert(t("error"), t("errorDeleteEntry")); }
     };
     if (Platform.OS === "web") {
       // @ts-ignore
-      if (window.confirm("Delete this entry?")) doDelete();
+      if (window.confirm(t("deleteConfirm"))) doDelete();
     } else {
-      Alert.alert("Delete Entry", "Are you sure?", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: doDelete },
+      Alert.alert(t("deleteEntry"), t("deleteConfirm"), [
+        { text: t("cancel"), style: "cancel" },
+        { text: t("delete"), style: "destructive", onPress: doDelete },
       ]);
     }
   }
@@ -270,7 +269,6 @@ export default function DailyEntryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      {/* ── Purple Header ── */}
       <SafeAreaView style={{ backgroundColor: C.bg }} edges={["top"]}>
         <View style={{
           backgroundColor: C.primary, borderRadius: 24, marginHorizontal: 12, marginTop: 8,
@@ -280,15 +278,15 @@ export default function DailyEntryScreen() {
           shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12,
         }}>
           <View>
-            <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>Daily Entries</Text>
+            <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{t("dailyEntries")}</Text>
             <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
-              Today: {totalToday.toFixed(1)}L · {entries.length} total records
+              {t("today")}: {totalToday.toFixed(1)}L · {entries.length} {t("totalRecords")}
             </Text>
           </View>
           <TouchableOpacity onPress={() => { setEditTarget(undefined); setModalOpen(true); }}
             style={{ flexDirection: "row", alignItems: "center", backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20, gap: 6 }}>
             <Plus size={16} color="#fff" />
-            <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>New Entry</Text>
+            <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{t("newEntry")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -297,8 +295,8 @@ export default function DailyEntryScreen() {
         {sorted.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 80 }}>
             <ClipboardList size={56} color={C.gray400} />
-            <Text style={{ fontSize: 18, fontWeight: "800", color: C.text, marginTop: 16, marginBottom: 6 }}>No Entries Yet</Text>
-            <Text style={{ fontSize: 14, color: C.textSub }}>Tap "New Entry" to record milk</Text>
+            <Text style={{ fontSize: 18, fontWeight: "800", color: C.text, marginTop: 16, marginBottom: 6 }}>{t("noEntriesYet")}</Text>
+            <Text style={{ fontSize: 14, color: C.textSub }}>{t("tapNewEntry")}</Text>
           </View>
         ) : (
           sorted.map(entry => (

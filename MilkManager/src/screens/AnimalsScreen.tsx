@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Plus, Pencil, Trash2 } from "lucide-react-native";
 import { useData } from "../context/DataContext";
+import { useLanguage } from "../context/LanguageContext";
 import type { Animal } from "../data/animalsData";
 
 const C = {
@@ -35,6 +36,7 @@ function AnimalCard({ animal, onEdit, onDelete }: {
   animal: Animal; onEdit: (a: Animal) => void; onDelete: (id: string) => void;
 }) {
   const { entries } = useData();
+  const { t } = useLanguage();
   const stats = useMemo(() => {
     const all   = entries.filter(e => e.animalName === animal.name);
     const last7 = all.filter(e => e.date >= sevenAgo && e.date <= todayStr);
@@ -45,8 +47,8 @@ function AnimalCard({ animal, onEdit, onDelete }: {
     return { total, count, avg, l7 };
   }, [entries, animal.name]);
 
-  const isCow   = animal.type === "cow";
-  const accent  = isCow ? C.cow : C.buffalo;
+  const isCow    = animal.type === "cow";
+  const accent   = isCow ? C.cow : C.buffalo;
   const accentBg = isCow ? C.primaryBg : C.buffaloBg;
 
   return (
@@ -55,11 +57,8 @@ function AnimalCard({ animal, onEdit, onDelete }: {
       elevation: 3, shadowColor: accent,
       shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 8,
     }}>
-      {/* Card top accent strip */}
       <View style={{ height: 5, backgroundColor: accent }} />
-
       <View style={{ padding: 16 }}>
-        {/* Header row */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: accentBg, justifyContent: "center", alignItems: "center" }}>
@@ -82,16 +81,14 @@ function AnimalCard({ animal, onEdit, onDelete }: {
           </View>
         </View>
 
-        {/* Stats grid */}
         <View style={{ flexDirection: "row", gap: 8 }}>
-          <StatPill label="Total" value={`${stats.total}L`} />
-          <StatPill label="Entries" value={`${stats.count}`} />
-          <StatPill label="Avg/Entry" value={`${stats.avg}L`} />
+          <StatPill label={t("total")}       value={`${stats.total}L`} />
+          <StatPill label={t("entries")}     value={`${stats.count}`} />
+          <StatPill label={t("avgPerEntry")} value={`${stats.avg}L`} />
         </View>
 
-        {/* Last 7 days highlight */}
         <View style={{ marginTop: 10, backgroundColor: accentBg, borderRadius: 10, padding: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Text style={{ fontSize: 12, color: accent, fontWeight: "600" }}>Last 7 Days</Text>
+          <Text style={{ fontSize: 12, color: accent, fontWeight: "600" }}>{t("last7Days")}</Text>
           <Text style={{ fontSize: 18, fontWeight: "800", color: accent }}>{stats.l7}L</Text>
         </View>
       </View>
@@ -113,6 +110,7 @@ function AnimalModal({ visible, initial, onSave, onClose }: {
   visible: boolean; initial?: Animal;
   onSave: (a: Omit<Animal, "id">) => Promise<void>; onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const [name,   setName]   = useState(initial?.name ?? "");
   const [type,   setType]   = useState<"cow" | "buffalo">(initial?.type ?? "cow");
   const [age,    setAge]    = useState(initial?.age?.toString() ?? "");
@@ -127,11 +125,11 @@ function AnimalModal({ visible, initial, onSave, onClose }: {
 
   async function handleSave() {
     const ageNum = parseInt(age, 10);
-    if (!name.trim())                 { Alert.alert("Error", "Enter animal name."); return; }
-    if (isNaN(ageNum) || ageNum <= 0) { Alert.alert("Error", "Enter valid age."); return; }
+    if (!name.trim())                 { Alert.alert(t("error"), t("errorEnterName")); return; }
+    if (isNaN(ageNum) || ageNum <= 0) { Alert.alert(t("error"), t("errorEnterAge")); return; }
     setSaving(true);
     try { await onSave({ name: name.trim(), type, age: ageNum }); }
-    catch { Alert.alert("Error", "Failed to save. Is the backend running?"); }
+    catch { Alert.alert(t("error"), t("errorSaveFailed")); }
     finally { setSaving(false); }
   }
 
@@ -139,42 +137,42 @@ function AnimalModal({ visible, initial, onSave, onClose }: {
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
         <View style={{ backgroundColor: C.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 36 }}>
-          {/* Handle bar */}
           <View style={{ width: 40, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 20 }} />
-
           <Text style={{ fontSize: 20, fontWeight: "800", color: C.text, marginBottom: 24 }}>
-            {initial ? "Edit Animal" : "Add New Animal"}
+            {initial ? t("editAnimal") : t("addNewAnimal")}
           </Text>
 
-          <Text style={s.label}>Animal Name</Text>
+          <Text style={s.label}>{t("animalName")}</Text>
           <TextInput style={s.input} value={name} onChangeText={setName} placeholder="e.g. Bella" placeholderTextColor={C.gray400} />
 
-          <Text style={s.label}>Type</Text>
+          <Text style={s.label}>{t("type")}</Text>
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 18 }}>
-            {(["cow", "buffalo"] as const).map(t => (
-              <TouchableOpacity key={t} onPress={() => setType(t)}
+            {(["cow", "buffalo"] as const).map(tp => (
+              <TouchableOpacity key={tp} onPress={() => setType(tp)}
                 style={{
                   flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: "center",
-                  backgroundColor: type === t ? C.primary : C.gray100,
-                  borderWidth: 2, borderColor: type === t ? C.primary : "transparent",
+                  backgroundColor: type === tp ? C.primary : C.gray100,
+                  borderWidth: 2, borderColor: type === tp ? C.primary : "transparent",
                 }}>
-                <Text style={{ fontSize: 20, marginBottom: 2 }}>{t === "cow" ? "🐄" : "🐃"}</Text>
-                <Text style={{ fontSize: 13, fontWeight: "700", color: type === t ? "#fff" : C.gray700, textTransform: "capitalize" }}>{t}</Text>
+                <Text style={{ fontSize: 20, marginBottom: 2 }}>{tp === "cow" ? "🐄" : "🐃"}</Text>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: type === tp ? "#fff" : C.gray700, textTransform: "capitalize" }}>
+                  {tp === "cow" ? t("cow") : t("buffalo")}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={s.label}>Age (years)</Text>
+          <Text style={s.label}>{t("ageYears")}</Text>
           <TextInput style={s.input} value={age} onChangeText={setAge} keyboardType="number-pad" placeholder="e.g. 4" placeholderTextColor={C.gray400} />
 
           <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
             <TouchableOpacity onPress={onClose}
               style={{ flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 2, borderColor: C.border, alignItems: "center" }}>
-              <Text style={{ color: C.gray700, fontWeight: "700", fontSize: 15 }}>Cancel</Text>
+              <Text style={{ color: C.gray700, fontWeight: "700", fontSize: 15 }}>{t("cancel")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSave} disabled={saving}
               style={{ flex: 1, paddingVertical: 14, borderRadius: 14, backgroundColor: saving ? C.gray400 : C.primary, alignItems: "center" }}>
-              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{saving ? "Saving…" : "Save"}</Text>
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{saving ? t("saving") : t("save")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -186,6 +184,7 @@ function AnimalModal({ visible, initial, onSave, onClose }: {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function AnimalsScreen() {
   const { animals, addAnimal, updateAnimal, removeAnimal, loading } = useData();
+  const { t } = useLanguage();
   const [modalOpen,  setModalOpen]  = useState(false);
   const [editTarget, setEditTarget] = useState<Animal | undefined>();
 
@@ -204,15 +203,15 @@ export default function AnimalsScreen() {
     const name = animals.find(a => a.id === id)?.name;
     const doDelete = async () => {
       try { await removeAnimal(id); }
-      catch { Alert.alert("Error", "Failed to delete."); }
+      catch { Alert.alert(t("error"), t("errorDeleteFailed")); }
     };
     if (Platform.OS === "web") {
       // @ts-ignore
-      if (window.confirm(`Remove ${name}?`)) doDelete();
+      if (window.confirm(`${t("delete")} ${name}?`)) doDelete();
     } else {
-      Alert.alert("Delete Animal", `Remove ${name}?`, [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: doDelete },
+      Alert.alert(t("deleteAnimal"), `${t("delete")} ${name}?`, [
+        { text: t("cancel"), style: "cancel" },
+        { text: t("delete"), style: "destructive", onPress: doDelete },
       ]);
     }
   }
@@ -238,7 +237,6 @@ export default function AnimalsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      {/* ── Purple Header ── */}
       <SafeAreaView style={{ backgroundColor: C.bg }} edges={["top"]}>
         <View style={{
           backgroundColor: C.primary, borderRadius: 24, marginHorizontal: 12, marginTop: 8,
@@ -248,26 +246,25 @@ export default function AnimalsScreen() {
           shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12,
         }}>
           <View>
-            <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>Animals</Text>
+            <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{t("animals")}</Text>
             <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
-              {animals.length} animal{animals.length !== 1 ? "s" : ""} registered
+              {animals.length} {animals.length !== 1 ? t("animalsCount") : t("animalCount")}
             </Text>
           </View>
           <TouchableOpacity onPress={() => { setEditTarget(undefined); setModalOpen(true); }}
             style={{ flexDirection: "row", alignItems: "center", backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20, gap: 6 }}>
             <Plus size={16} color="#fff" />
-            <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Add Animal</Text>
+            <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{t("addAnimal")}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-
         {cows.length > 0 && (
           <View style={{ marginBottom: 4 }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
               <View style={{ width: 4, height: 18, backgroundColor: C.cow, borderRadius: 2, marginRight: 8 }} />
-              <Text style={{ fontSize: 14, fontWeight: "700", color: C.text }}>Cows</Text>
+              <Text style={{ fontSize: 14, fontWeight: "700", color: C.text }}>{t("cows")}</Text>
               <View style={{ marginLeft: 8, backgroundColor: C.primaryBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
                 <Text style={{ fontSize: 12, fontWeight: "700", color: C.cow }}>{cows.length}</Text>
               </View>
@@ -280,7 +277,7 @@ export default function AnimalsScreen() {
           <View style={{ marginTop: 8 }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
               <View style={{ width: 4, height: 18, backgroundColor: C.buffalo, borderRadius: 2, marginRight: 8 }} />
-              <Text style={{ fontSize: 14, fontWeight: "700", color: C.text }}>Buffaloes</Text>
+              <Text style={{ fontSize: 14, fontWeight: "700", color: C.text }}>{t("buffaloes")}</Text>
               <View style={{ marginLeft: 8, backgroundColor: C.buffaloBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
                 <Text style={{ fontSize: 12, fontWeight: "700", color: C.buffalo }}>{buffaloes.length}</Text>
               </View>
@@ -292,8 +289,8 @@ export default function AnimalsScreen() {
         {animals.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 80 }}>
             <Text style={{ fontSize: 56, marginBottom: 16 }}>🐄</Text>
-            <Text style={{ fontSize: 18, fontWeight: "800", color: C.text, marginBottom: 6 }}>No Animals Yet</Text>
-            <Text style={{ fontSize: 14, color: C.textSub, textAlign: "center" }}>Tap "Add Animal" to register your first animal</Text>
+            <Text style={{ fontSize: 18, fontWeight: "800", color: C.text, marginBottom: 6 }}>{t("noAnimalsYet")}</Text>
+            <Text style={{ fontSize: 14, color: C.textSub, textAlign: "center" }}>{t("tapAddAnimal")}</Text>
           </View>
         )}
       </ScrollView>
