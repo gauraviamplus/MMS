@@ -4,6 +4,7 @@ import animalsRouter  from "./routes/animals";
 import entriesRouter  from "./routes/entries";
 import expensesRouter from "./routes/expenses";
 import authRouter     from "./routes/auth";
+import { initWhatsApp } from "./services/whatsapp";
 
 const app  = express();
 const PORT = process.env.PORT ?? 3000;
@@ -25,4 +26,5 @@ app.listen(PORT, () => {
   console.log(`    Health:        http://localhost:${PORT}/health`);
   console.log(`    Entries API:   http://localhost:${PORT}/api/entries`);
   console.log(`    Expenses API:  http://localhost:${PORT}/api/expenses`);
+  initWhatsApp();
 });

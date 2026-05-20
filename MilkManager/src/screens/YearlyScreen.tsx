@@ -123,8 +123,15 @@ function LineChart({ data, width }: { data: number[]; width: number }) {
 
 const NOW = new Date();
 
-export default function YearlyScreen() {
-  const [year, setYear] = useState(2026);
+type ReportTab = "monthly" | "yearly";
+
+interface Props {
+  activeTab: ReportTab;
+  onTabChange: (tab: ReportTab) => void;
+}
+
+export default function YearlyScreen({ activeTab, onTabChange }: Props) {
+  const [year, setYear] = useState(NOW.getFullYear());
   const { width: screenW } = useWindowDimensions();
   const { entries: allEntries } = useData();
   const { t } = useLanguage();
@@ -193,17 +200,28 @@ export default function YearlyScreen() {
           elevation: 8, shadowColor: C.purple,
           shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12,
         }}>
-          <View>
-            <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{t("yearlyReport")}</Text>
-            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{year}</Text>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{t("yearlyReport")}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             {navBtn("‹", () => setYear(y => y - 1), true)}
-            {navBtn(t("today"), () => setYear(NOW.getFullYear()))}
+            <Text style={{ fontSize: 14, fontWeight: "700", color: "#fff", minWidth: 50, textAlign: "center" }}>{year}</Text>
             {navBtn("›", () => setYear(y => y + 1), true)}
           </View>
         </View>
       </SafeAreaView>
+
+      {/* Monthly / Yearly toggle */}
+      <View style={{ flexDirection: "row", backgroundColor: "#FFFFFF", borderBottomWidth: 1, borderBottomColor: "#E5E7EB" }}>
+        {(["monthly", "yearly"] as ReportTab[]).map(tab => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => onTabChange(tab)}
+            style={{ flex: 1, paddingVertical: 10, alignItems: "center", borderBottomWidth: 2.5, borderBottomColor: activeTab === tab ? C.purple : "transparent" }}>
+            <Text style={{ fontSize: 14, fontWeight: "700", color: activeTab === tab ? C.purple : C.gray500 }}>
+              {tab === "monthly" ? `📅  ${t("tabMonthly")}` : `📊  ${t("tabYearly")}`}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={{ marginBottom: 4 }} />

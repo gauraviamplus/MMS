@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DailyEntry, Expense } from "../types";
 
 const host =
@@ -6,9 +7,14 @@ const host =
 const BASE_URL = `http://${host}:3000/api`;
 
 async function req<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = await AsyncStorage.getItem("auth_token");
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options?.headers ?? {}),
+    },
   });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
@@ -19,10 +25,10 @@ async function req<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   auth: {
-    sendOtp:   (phone: string) =>
-      req<{ success: boolean; otp: string }>("/auth/send-otp", { method: "POST", body: JSON.stringify({ phone }) }),
+    sendOtp: (phone: string) =>
+      req<{ success: boolean }>("/auth/send-otp", { method: "POST", body: JSON.stringify({ phone }) }),
     verifyOtp: (phone: string, otp: string) =>
-      req<{ success: boolean; phone: string }>("/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp }) }),
+      req<{ success: boolean; phone: string; token: string }>("/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp }) }),
   },
   entries: {
     list: () =>

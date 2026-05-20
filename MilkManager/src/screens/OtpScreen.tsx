@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import {
   View, Text, TextInput, TouchableOpacity,
   Alert, ActivityIndicator, KeyboardAvoidingView,
-  Platform, ScrollView,
+  Platform, ScrollView, Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft } from "lucide-react-native";
@@ -23,12 +23,11 @@ const C = {
 
 interface Props {
   phone: string;
-  sentOtp: string;  // dev only
   onBack: () => void;
   onResend: () => void;
 }
 
-export default function OtpScreen({ phone, sentOtp, onBack, onResend }: Props) {
+export default function OtpScreen({ phone, onBack, onResend }: Props) {
   const { t } = useLanguage();
   const { login } = useAuth();
   const [otp,     setOtp]     = useState("");
@@ -42,8 +41,8 @@ export default function OtpScreen({ phone, sentOtp, onBack, onResend }: Props) {
     }
     setLoading(true);
     try {
-      await api.auth.verifyOtp(phone, otp);
-      login(phone);
+      const res = await api.auth.verifyOtp(phone, otp);
+      await login(phone, res.token);
     } catch (e: any) {
       const msg: string = e?.message ?? "";
       if (msg.includes("expired"))      Alert.alert(t("error"), t("otpExpired"));
@@ -71,25 +70,15 @@ export default function OtpScreen({ phone, sentOtp, onBack, onResend }: Props) {
 
             {/* Top area */}
             <View style={{ alignItems: "center", paddingTop: 20, paddingBottom: 40 }}>
-              <View style={{
-                width: 80, height: 80, borderRadius: 40,
-                backgroundColor: "rgba(255,255,255,0.2)", justifyContent: "center", alignItems: "center",
-                marginBottom: 20,
-              }}>
-                <Text style={{ fontSize: 36 }}>📱</Text>
-              </View>
+              <Image
+                source={require("../../assets/logo.png")}
+                style={{ width: 150, height: 150, borderRadius: 75, marginBottom: 20 }}
+                resizeMode="cover"
+              />
               <Text style={{ fontSize: 26, fontWeight: "800", color: "#fff" }}>{t("verifyOtp")}</Text>
               <Text style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", marginTop: 8, textAlign: "center", paddingHorizontal: 32 }}>
                 {t("otpSentTo")} +91 {phone}
               </Text>
-              {/* Dev helper */}
-              {sentOtp ? (
-                <View style={{ marginTop: 12, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}>
-                  <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", fontWeight: "600" }}>
-                    OTP: {sentOtp}
-                  </Text>
-                </View>
-              ) : null}
             </View>
 
             {/* Bottom card */}

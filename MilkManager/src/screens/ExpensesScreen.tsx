@@ -4,6 +4,7 @@ import {
   Modal, TextInput, Alert, Platform, ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DatePicker from "../components/DatePicker";
 import { Plus, Pencil, Trash2, Receipt } from "lucide-react-native";
 import { useData } from "../context/DataContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -160,9 +161,7 @@ function ExpenseModal({ visible, initial, onSave, onClose }: {
             {initial ? t("editExpense") : t("newExpense")}
           </Text>
 
-          <Text style={s.label}>{t("dateLabel")}</Text>
-          <TextInput style={s.input} value={date} onChangeText={setDate}
-            placeholder="2026-05-20" placeholderTextColor={C.gray400} />
+          <DatePicker label={t("dateLabel")} value={date} onChange={setDate} />
 
           <Text style={s.label}>{t("expenseCategory")}</Text>
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>

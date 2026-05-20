@@ -2,14 +2,13 @@ import React from "react";
 import { Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Home, ClipboardList, TrendingUp, Calendar, BarChart3, Receipt } from "lucide-react-native";
+import { Home, ClipboardList, TrendingUp, BarChart3, Receipt } from "lucide-react-native";
 import { useLanguage } from "../context/LanguageContext";
 
 import DashboardScreen  from "../screens/DashboardScreen";
 import DailyEntryScreen from "../screens/DailyEntryScreen";
 import WeeklyScreen     from "../screens/WeeklyScreen";
-import MonthlyScreen    from "../screens/MonthlyScreen";
-import YearlyScreen     from "../screens/YearlyScreen";
+import ReportTabScreen  from "../screens/ReportTabScreen";
 import ExpensesScreen   from "../screens/ExpensesScreen";
 
 const Tab = createBottomTabNavigator();
@@ -42,11 +41,9 @@ export default function AppNavigator() {
         <Tab.Screen name="DailyEntry" component={DailyEntryScreen}
           options={{ tabBarLabel: t("tabEntries"), tabBarIcon: ({ color, size }) => <ClipboardList color={color} size={size - 2} /> }} />
         <Tab.Screen name="Weekly"     component={WeeklyScreen}
-          options={{ tabBarLabel: t("tabWeekly"),  tabBarIcon: ({ color, size }) => <TrendingUp   color={color} size={size - 2} /> }} />
-        <Tab.Screen name="Monthly"    component={MonthlyScreen}
-          options={{ tabBarLabel: t("tabMonthly"), tabBarIcon: ({ color, size }) => <Calendar     color={color} size={size - 2} /> }} />
-        <Tab.Screen name="Yearly"     component={YearlyScreen}
-          options={{ tabBarLabel: t("tabYearly"),  tabBarIcon: ({ color, size }) => <BarChart3    color={color} size={size - 2} /> }} />
+          options={{ tabBarLabel: t("tabWeekly"),  tabBarIcon: ({ color, size }) => <TrendingUp  color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Report"     component={ReportTabScreen}
+          options={{ tabBarLabel: t("tabReport"),    tabBarIcon: ({ color, size }) => <BarChart3   color={color} size={size - 2} /> }} />
         <Tab.Screen name="Expenses"   component={ExpensesScreen}
           options={{ tabBarLabel: t("tabExpenses"), tabBarIcon: ({ color, size }) => <Receipt     color={color} size={size - 2} /> }} />
       </Tab.Navigator>

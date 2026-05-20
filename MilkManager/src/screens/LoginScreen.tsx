@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity,
   Alert, ActivityIndicator, KeyboardAvoidingView,
-  Platform, ScrollView,
+  Platform, ScrollView, Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLanguage } from "../context/LanguageContext";
@@ -20,7 +20,7 @@ const C = {
 };
 
 interface Props {
-  onOtpSent: (phone: string, otp: string) => void;
+  onOtpSent: (phone: string) => void;
 }
 
 export default function LoginScreen({ onOtpSent }: Props) {
@@ -36,8 +36,8 @@ export default function LoginScreen({ onOtpSent }: Props) {
     }
     setLoading(true);
     try {
-      const res = await api.auth.sendOtp(cleaned);
-      onOtpSent(cleaned, res.otp);
+      await api.auth.sendOtp(cleaned);
+      onOtpSent(cleaned);
     } catch (e: any) {
       Alert.alert(t("error"), e?.message ?? t("errorSaveFailed"));
     } finally {
@@ -55,13 +55,11 @@ export default function LoginScreen({ onOtpSent }: Props) {
           <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
             {/* Top illustration area */}
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60, paddingBottom: 40 }}>
-              <View style={{
-                width: 96, height: 96, borderRadius: 48,
-                backgroundColor: "rgba(255,255,255,0.2)", justifyContent: "center", alignItems: "center",
-                marginBottom: 24,
-              }}>
-                <Text style={{ fontSize: 48 }}>🥛</Text>
-              </View>
+              <Image
+                source={require("../../assets/logo.png")}
+                style={{ width: 200, height: 200, borderRadius: 100, marginBottom: 24 }}
+                resizeMode="cover"
+              />
               <Text style={{ fontSize: 28, fontWeight: "800", color: "#fff", letterSpacing: -0.5 }}>
                 {t("loginWelcome")}
               </Text>

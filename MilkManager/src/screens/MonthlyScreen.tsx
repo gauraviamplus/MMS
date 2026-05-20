@@ -67,9 +67,16 @@ function sumBuf(entries: any[]) { return r1(entries.filter(e => e.animalType ===
 
 const NOW = new Date();
 
-export default function MonthlyScreen() {
-  const [year,  setYear]  = useState(2026);
-  const [month, setMonth] = useState(4);
+type ReportTab = "monthly" | "yearly";
+
+interface Props {
+  activeTab: ReportTab;
+  onTabChange: (tab: ReportTab) => void;
+}
+
+export default function MonthlyScreen({ activeTab, onTabChange }: Props) {
+  const [year,  setYear]  = useState(NOW.getFullYear());
+  const [month, setMonth] = useState(NOW.getMonth() + 1);
   const { entries: allEntries } = useData();
   const { t } = useLanguage();
 
@@ -129,17 +136,30 @@ export default function MonthlyScreen() {
           elevation: 8, shadowColor: C.purple,
           shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12,
         }}>
-          <View>
-            <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{t("monthlyReport")}</Text>
-            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{fmtMonth(year, month)}</Text>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{t("monthlyReport")}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 0 }}>
             {navBtn("‹", prevMonth, true)}
-            {navBtn(t("today"), goToCurrentMonth)}
+            <Text style={{ fontSize: 14, fontWeight: "700", color: "#fff", minWidth: 80, textAlign: "center" }}>
+              {new Date(year, month - 1, 1).toLocaleDateString("en-US", { month: "long" })}
+            </Text>
             {navBtn("›", nextMonth, true)}
           </View>
         </View>
       </SafeAreaView>
+
+      {/* Monthly / Yearly toggle */}
+      <View style={{ flexDirection: "row", backgroundColor: "#FFFFFF", borderBottomWidth: 1, borderBottomColor: "#E5E7EB" }}>
+        {(["monthly", "yearly"] as ReportTab[]).map(tab => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => onTabChange(tab)}
+            style={{ flex: 1, paddingVertical: 10, alignItems: "center", borderBottomWidth: 2.5, borderBottomColor: activeTab === tab ? C.purple : "transparent" }}>
+            <Text style={{ fontSize: 14, fontWeight: "700", color: activeTab === tab ? C.purple : C.gray500 }}>
+              {tab === "monthly" ? `📅  ${t("tabMonthly")}` : `📊  ${t("tabYearly")}`}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={{ marginBottom: 4 }} />

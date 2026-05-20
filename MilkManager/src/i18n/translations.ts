@@ -12,7 +12,7 @@ const en = {
   otpExpired: "OTP expired. Request a new one.",
   // Navigation
   tabHome: "Home", tabEntries: "Entries", tabWeekly: "Weekly",
-  tabMonthly: "Monthly", tabYearly: "Yearly", tabAnimals: "Animals", tabExpenses: "Expenses",
+  tabReport: "Report", tabMonthly: "Monthly", tabYearly: "Yearly", tabAnimals: "Animals", tabExpenses: "Expenses",
   // Common
   cancel: "Cancel", save: "Save", delete: "Delete", error: "Error",
   close: "Close", today: "Today", saving: "Saving…",
@@ -99,7 +99,7 @@ export const translations: Record<Language, typeof en> = {
     wrongOtp: "गलत OTP। पुनः प्रयास करें।",
     otpExpired: "OTP समाप्त हो गया। नया OTP मंगाएं।",
     tabHome: "होम", tabEntries: "प्रविष्टियाँ", tabWeekly: "साप्ताहिक",
-    tabMonthly: "मासिक", tabYearly: "वार्षिक", tabAnimals: "पशु", tabExpenses: "खर्च",
+    tabReport: "रिपोर्ट", tabMonthly: "मासिक", tabYearly: "वार्षिक", tabAnimals: "पशु", tabExpenses: "खर्च",
     cancel: "रद्द करें", save: "सहेजें", delete: "हटाएं", error: "त्रुटि",
     close: "बंद करें", today: "आज", saving: "सहेज रहे हैं…",
     cow: "गाय", buffalo: "भैंस", cows: "गायें", buffaloes: "भैंसें",
@@ -171,7 +171,7 @@ export const translations: Record<Language, typeof en> = {
     wrongOtp: "चुकीचा OTP. पुन्हा प्रयत्न करा.",
     otpExpired: "OTP कालबाह्य झाला. नवीन OTP मागवा.",
     tabHome: "होम", tabEntries: "नोंदी", tabWeekly: "साप्ताहिक",
-    tabMonthly: "मासिक", tabYearly: "वार्षिक", tabAnimals: "जनावरे", tabExpenses: "खर्च",
+    tabReport: "अहवाल", tabMonthly: "मासिक", tabYearly: "वार्षिक", tabAnimals: "जनावरे", tabExpenses: "खर्च",
     cancel: "रद्द करा", save: "जतन करा", delete: "हटवा", error: "त्रुटी",
     close: "बंद करा", today: "आज", saving: "जतन होत आहे…",
     cow: "गाय", buffalo: "म्हैस", cows: "गायी", buffaloes: "म्हशी",

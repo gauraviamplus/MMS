@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)",
-      "Bash(echo \"Backend PID: $!\")"
+      "Bash(echo \"Backend PID: $!\")",
+      "Bash(echo \"PID=$!\")",
+      "Bash(chmod +x /Users/admin/Documents/Workspace/MMS/Untitled/MMS/node_modules/.bin/concurrently)",
+      "Bash(npm list *)",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(ls /tmp/ | grep -i \"png\\\\|jpg\\\\|jpeg\\\\|image\" | head -10 && ls ~/Downloads/ | grep -i \"png\\\\|jpg\\\\|jpeg\\\\|milk\\\\|logo\" | head -10 2>/dev/null)",
+      "Read(//private/tmp/**)",
+      "Read(//Users/admin/Downloads/**)",
+      "Bash(cp \"/Users/admin/Downloads/ChatGPT Image May 20, 2026, 09_56_06 PM.png\" /Users/admin/Documents/Workspace/MMS/Untitled/MMS/MilkManager/assets/logo.png && echo \"copied\")"
+    ],
+    "additionalDirectories": [
+      "/Users/admin/Downloads"
     ]
   }
 }

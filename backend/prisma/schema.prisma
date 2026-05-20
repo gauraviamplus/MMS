@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Expense {
-  id        String   @id @default(cuid())
-  date      String   // YYYY-MM-DD
-  category    String   // "medicine" | "food" | "worker"
-  amount      Float
-  workerName  String?
-  note        String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  phone      String
+  date       String
+  category   String
+  amount     Float
+  workerName String?
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Animal {
@@ -29,10 +30,11 @@ model Animal {
 
 model DailyEntry {
   id          String   @id @default(cuid())
-  date        String   // YYYY-MM-DD
+  phone       String
+  date        String
   animalName  String
-  animalType  String   // "cow" | "buffalo"
-  session     String   @default("morning")  // "morning" | "evening"
+  animalType  String
+  session     String   @default("morning")
   quantity    Float
   rate        Float
   totalAmount Float

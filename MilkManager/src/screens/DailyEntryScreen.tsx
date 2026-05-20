@@ -4,6 +4,7 @@ import {
   Modal, TextInput, Alert, Platform, ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DatePicker from "../components/DatePicker";
 import { Plus, Pencil, Trash2, ClipboardList } from "lucide-react-native";
 import { useData } from "../context/DataContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -111,7 +112,7 @@ function EntryModal({ visible, initial, onSave, onClose }: {
   const [animalType, setAnimalType] = useState<"cow" | "buffalo">(initial?.animalType ?? "cow");
   const [session,    setSession]   = useState<"morning" | "evening">(initial?.session ?? "morning");
   const [quantity,   setQuantity]  = useState(initial?.quantity?.toString() ?? "");
-  const [rate,       setRate]      = useState(initial?.rate?.toString() ?? "35");
+  const [rate,       setRate]      = useState(initial?.rate?.toString() ?? "");
   const [notes,      setNotes]     = useState(initial?.notes ?? "");
   const [saving,     setSaving]    = useState(false);
 
@@ -121,7 +122,7 @@ function EntryModal({ visible, initial, onSave, onClose }: {
       setAnimalType(initial?.animalType ?? "cow");
       setSession(initial?.session ?? "morning");
       setQuantity(initial?.quantity?.toString() ?? "");
-      setRate(initial?.rate?.toString() ?? "35");
+      setRate(initial?.rate?.toString() ?? "");
       setNotes(initial?.notes ?? "");
       setSaving(false);
     }
@@ -129,11 +130,13 @@ function EntryModal({ visible, initial, onSave, onClose }: {
 
   function handleTypeChange(type: "cow" | "buffalo") {
     setAnimalType(type);
-    setRate(type === "cow" ? "35" : "30");
+    if (!initial) setRate("");
   }
 
   async function handleSave() {
-    const qty = parseFloat(quantity), r = parseFloat(rate);
+    const qty = parseFloat(quantity);
+    const defaultRate = animalType === "cow" ? 34.67 : 65.89;
+    const r = rate.trim() === "" ? defaultRate : parseFloat(rate);
     if (!date || isNaN(qty) || qty <= 0) { Alert.alert(t("error"), t("errorValidDate")); return; }
     if (isNaN(r) || r <= 0)              { Alert.alert(t("error"), t("errorValidRate")); return; }
     setSaving(true);
@@ -162,8 +165,7 @@ function EntryModal({ visible, initial, onSave, onClose }: {
             {initial ? t("editEntry") : t("newEntry")}
           </Text>
 
-          <Text style={s.label}>{t("dateLabel")}</Text>
-          <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="2026-05-20" placeholderTextColor={C.gray400} />
+          <DatePicker label={t("dateLabel")} value={date} onChange={setDate} />
 
           <Text style={s.label}>{t("type")}</Text>
           <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
@@ -204,7 +206,7 @@ function EntryModal({ visible, initial, onSave, onClose }: {
           <View style={{ flexDirection: "row", gap: 12 }}>
             <View style={{ flex: 1 }}>
               <Text style={s.label}>{t("rateLabel")}</Text>
-              <TextInput style={s.input} value={rate} onChangeText={setRate} keyboardType="decimal-pad" placeholder="35" placeholderTextColor={C.gray400} />
+              <TextInput style={s.input} value={rate} onChangeText={setRate} keyboardType="decimal-pad" placeholder={animalType === "cow" ? "34.67" : "65.89"} placeholderTextColor={C.gray400} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={s.label}>{t("quantityLabel")}</Text>
@@ -212,11 +214,11 @@ function EntryModal({ visible, initial, onSave, onClose }: {
             </View>
           </View>
 
-          {quantity && rate && !isNaN(parseFloat(quantity)) && !isNaN(parseFloat(rate)) && (
+          {quantity && !isNaN(parseFloat(quantity)) && parseFloat(quantity) > 0 && (
             <View style={{ backgroundColor: "#F0FDF4", borderRadius: 12, padding: 12, marginBottom: 16, flexDirection: "row", justifyContent: "space-between" }}>
               <Text style={{ color: C.textSub, fontSize: 13 }}>{t("totalAmount")}</Text>
               <Text style={{ color: C.green, fontWeight: "800", fontSize: 16 }}>
-                ₹{(parseFloat(quantity) * parseFloat(rate)).toFixed(2)}
+                ₹{(parseFloat(quantity) * (rate.trim() === "" ? (animalType === "cow" ? 34.67 : 65.89) : parseFloat(rate) || 0)).toFixed(2)}
               </Text>
             </View>
           )}

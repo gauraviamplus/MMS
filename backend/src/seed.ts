@@ -9,15 +9,18 @@ const ANIMALS = [
   { name: "Luna",  type: "buffalo", age: 4 },
 ];
 
+const SEED_PHONE = "0000000000";
+
 function entry(
   date: string, animalType: string, animalName: string,
   quantity: number, notes?: string,
 ) {
   const rate = animalType === "cow" ? 35 : 30;
   return {
+    phone: SEED_PHONE,
     date, animalType, animalName, quantity, rate,
     totalAmount: Math.round(quantity * rate * 100) / 100,
-    notes,
+    notes, session: "morning",
   };
 }
 

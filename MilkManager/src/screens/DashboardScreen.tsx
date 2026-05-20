@@ -1,9 +1,8 @@
 import React, { useMemo } from "react";
-import { ScrollView, View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
+import { ScrollView, View, Text, ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useData } from "../context/DataContext";
 import { useLanguage } from "../context/LanguageContext";
-import type { Language } from "../i18n/translations";
 
 const C = {
   primary:     "#7C3AED",
@@ -25,15 +24,9 @@ const TODAY_LABEL = new Date().toLocaleDateString("en-IN", {
   weekday: "long", month: "long", day: "numeric", year: "numeric",
 });
 
-const LANGS: { code: Language; label: string }[] = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "हिंदी" },
-  { code: "mr", label: "मराठी" },
-];
-
 export default function DashboardScreen() {
   const { entries, loading } = useData();
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
 
   const stats = useMemo(() => {
     const sumCow = (d: string) => entries.filter(e => e.date === d && e.animalType === "cow").reduce((s, e) => s + e.quantity, 0);
@@ -65,12 +58,21 @@ export default function DashboardScreen() {
           elevation: 8, shadowColor: C.primary,
           shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12,
         }}>
-          <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 2, letterSpacing: 0.4 }}>
-            {TODAY_LABEL}
-          </Text>
-          <Text style={{ fontSize: 24, fontWeight: "800", color: "#fff", letterSpacing: -0.5 }}>
-            🥛 {t("milkManager")}
-          </Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 2, letterSpacing: 0.4 }}>
+                {TODAY_LABEL}
+              </Text>
+              <Text style={{ fontSize: 24, fontWeight: "800", color: "#fff", letterSpacing: -0.5 }}>
+                {t("milkManager")}
+              </Text>
+            </View>
+            <Image
+              source={require("../../assets/logo.png")}
+              style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: "rgba(255,255,255,0.4)" }}
+              resizeMode="cover"
+            />
+          </View>
           <View style={{ marginTop: 18 }}>
             <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{t("todaysTotalProduction")}</Text>
             <View style={{ flexDirection: "row", alignItems: "flex-end", marginTop: 4 }}>
@@ -133,26 +135,6 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* ── Language Selector ── */}
-        <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-          <Text style={styles.sectionTitle}>{t("language").toUpperCase()}</Text>
-          <View style={[styles.card, { flexDirection: "row", padding: 4, gap: 4 }]}>
-            {LANGS.map(({ code, label }) => (
-              <TouchableOpacity
-                key={code}
-                onPress={() => setLanguage(code)}
-                style={{
-                  flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center",
-                  backgroundColor: language === code ? C.primary : "transparent",
-                }}
-              >
-                <Text style={{ fontSize: 13, fontWeight: "700", color: language === code ? "#fff" : C.textSub }}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
       </ScrollView>
     </View>
   );

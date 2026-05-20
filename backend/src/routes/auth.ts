@@ -1,11 +1,14 @@
 import { Router, Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import { sendOTP } from "../services/whatsapp";
+import { JWT_SECRET } from "../middleware/auth";
 
 const router = Router();
 
 // In-memory OTP store: phone → { otp, expiresAt }
 const otpStore = new Map<string, { otp: string; expiresAt: number }>();
 
-router.post("/send-otp", (req: Request, res: Response) => {
+router.post("/send-otp", async (req: Request, res: Response) => {
   const { phone } = req.body as { phone: string };
   if (!phone || !/^\d{10}$/.test(phone)) {
     res.status(400).json({ error: "Invalid phone number" });
@@ -13,9 +16,9 @@ router.post("/send-otp", (req: Request, res: Response) => {
   }
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore.set(phone, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
-  console.log(`\n📱  OTP for ${phone}:  ${otp}\n`);
-  // In production: send via SMS. For dev, return in response.
-  res.json({ success: true, otp });
+
+  await sendOTP(phone, otp);
+  res.json({ success: true });
 });
 
 router.post("/verify-otp", (req: Request, res: Response) => {
@@ -35,7 +38,8 @@ router.post("/verify-otp", (req: Request, res: Response) => {
     return;
   }
   otpStore.delete(phone);
-  res.json({ success: true, phone });
+  const token = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "30d" });
+  res.json({ success: true, phone, token });
 });
 
 export default router;

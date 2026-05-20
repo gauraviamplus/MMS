@@ -27,27 +27,41 @@ const C = {
   gray400:     "#9CA3AF",
 };
 
-const WEEK = [
-  { date: "2026-04-18", short: "Sat, Apr 18", xLabel: "Apr 18" },
-  { date: "2026-04-19", short: "Sun, Apr 19", xLabel: "Apr 19" },
-  { date: "2026-04-20", short: "Mon, Apr 20", xLabel: "Apr 20" },
-  { date: "2026-04-21", short: "Tue, Apr 21", xLabel: "Apr 21" },
-  { date: "2026-04-22", short: "Wed, Apr 22", xLabel: "Apr 22" },
-  { date: "2026-04-23", short: "Thu, Apr 23", xLabel: "Apr 23" },
-  { date: "2026-04-24", short: "Fri, Apr 24", xLabel: "Apr 24" },
-];
-
 function round1(n: number) { return Math.round(n * 10) / 10; }
+
+function getCurrentWeekDays() {
+  const now      = new Date();
+  const day      = now.getDay(); // 0=Sun
+  const monday   = new Date(now);
+  monday.setDate(now.getDate() - ((day + 6) % 7)); // start of week (Mon)
+  return Array.from({ length: 7 }, (_, i) => {
+    const d   = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const iso = d.toISOString().split("T")[0];
+    return {
+      date:   iso,
+      short:  d.toLocaleDateString("en-IN", { weekday: "short", month: "short", day: "numeric" }),
+      xLabel: d.toLocaleDateString("en-IN", { weekday: "short" }),
+    };
+  });
+}
+
+function getWeekLabel(days: { date: string }[]) {
+  const fmt = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return `${fmt(days[0].date)} – ${fmt(days[6].date)}`;
+}
 
 function BarChart({ data, width }: { data: { cow: number; buffalo: number; label: string }[]; width: number }) {
   const ML = 38, MR = 10, MT = 10, MB = 44;
   const W = width - ML - MR;
   const H = 150;
-  const MAX = 260;
-  const yLabels = [0, 65, 130, 195, 260];
+  const allVals = data.flatMap(d => [d.cow, d.buffalo]);
+  const MAX  = Math.max(Math.ceil(Math.max(...allVals, 10) * 1.2 / 50) * 50, 50);
+  const step = MAX / 4;
+  const yLabels = [0, step, step * 2, step * 3, MAX];
   const groupW  = W / data.length;
-  const barW    = 11;
-  const gap     = 3;
+  const barW    = Math.max(Math.min(groupW * 0.35, 14), 4);
+  const gap     = 2;
   const pairW   = barW * 2 + gap;
 
   return (
@@ -57,7 +71,7 @@ function BarChart({ data, width }: { data: { cow: number; buffalo: number; label
         return (
           <G key={v}>
             <SvgLine x1={ML} y1={y} x2={ML + W} y2={y} stroke="#E5E7EB" strokeWidth={1} />
-            <SvgText x={ML - 4} y={y + 4} fontSize={9} fill={C.gray400} textAnchor="end">{v}</SvgText>
+            <SvgText x={ML - 4} y={y + 4} fontSize={9} fill={C.gray400} textAnchor="end">{Math.round(v)}</SvgText>
           </G>
         );
       })}
@@ -71,7 +85,9 @@ function BarChart({ data, width }: { data: { cow: number; buffalo: number; label
           <G key={i}>
             <Rect x={barX1} y={MT + H - cowH} width={barW} height={Math.max(cowH, 0)} fill={C.purpleLight} rx={2} />
             <Rect x={barX2} y={MT + H - bufH} width={barW} height={Math.max(bufH, 0)} fill={C.purple}      rx={2} />
-            <SvgText x={cx} y={MT + H + 14} fontSize={8} fill={C.gray500} textAnchor="middle">{d.label}</SvgText>
+            {i % 5 === 0 && (
+              <SvgText x={cx} y={MT + H + 14} fontSize={8} fill={C.gray500} textAnchor="middle">{d.label}</SvgText>
+            )}
           </G>
         );
       })}
@@ -90,10 +106,15 @@ function LineChart({ data, width }: { data: { total: number; label: string }[]; 
   const ML = 42, MR = 10, MT = 10, MB = 44;
   const W = width - ML - MR;
   const H = 150;
-  const MAX = 600;
-  const yLabels = [0, 150, 300, 450, 600];
+  const maxVal = Math.max(...data.map(d => d.total), 10);
+  const MAX    = Math.max(Math.ceil(maxVal * 1.2 / 100) * 100, 100);
+  const step   = MAX / 4;
+  const yLabels = [0, step, step * 2, step * 3, MAX];
   const n = data.length;
-  const pts = data.map((d, i) => ({ x: ML + (i / (n - 1)) * W, y: MT + H - (d.total / MAX) * H }));
+  const pts = data.map((d, i) => ({
+    x: ML + (n > 1 ? (i / (n - 1)) : 0.5) * W,
+    y: MT + H - (d.total / MAX) * H,
+  }));
   const pointsStr = pts.map(p => `${p.x},${p.y}`).join(" ");
 
   return (
@@ -103,16 +124,16 @@ function LineChart({ data, width }: { data: { total: number; label: string }[]; 
         return (
           <G key={v}>
             <SvgLine x1={ML} y1={y} x2={ML + W} y2={y} stroke="#E5E7EB" strokeWidth={1} />
-            <SvgText x={ML - 4} y={y + 4} fontSize={9} fill={C.gray400} textAnchor="end">{v}</SvgText>
+            <SvgText x={ML - 4} y={y + 4} fontSize={9} fill={C.gray400} textAnchor="end">{Math.round(v)}</SvgText>
           </G>
         );
       })}
       <Polyline points={pointsStr} fill="none" stroke={C.greenChart} strokeWidth={2} />
       {pts.map((p, i) => (
-        <Circle key={i} cx={p.x} cy={p.y} r={4} fill={C.card} stroke={C.greenChart} strokeWidth={2} />
+        <Circle key={i} cx={p.x} cy={p.y} r={3} fill={C.card} stroke={C.greenChart} strokeWidth={2} />
       ))}
-      {data.map((d, i) => (
-        <SvgText key={i} x={ML + (i / (n - 1)) * W} y={MT + H + 14} fontSize={8} fill={C.gray500} textAnchor="middle">{d.label}</SvgText>
+      {data.map((d, i) => i % 5 === 0 && (
+        <SvgText key={i} x={ML + (n > 1 ? (i / (n - 1)) : 0.5) * W} y={MT + H + 14} fontSize={8} fill={C.gray500} textAnchor="middle">{d.label}</SvgText>
       ))}
       <SvgLine x1={ML} y1={MT + H} x2={ML + W} y2={MT + H} stroke="#D1D5DB" strokeWidth={1} />
       <G>
@@ -129,42 +150,59 @@ export default function WeeklyScreen() {
   const { entries: allEntries } = useData();
   const { t } = useLanguage();
 
+  const WEEK_DAYS  = useMemo(() => getCurrentWeekDays(), []);
+  const weekLabel  = useMemo(() => getWeekLabel(WEEK_DAYS), [WEEK_DAYS]);
+  const today      = new Date().toISOString().split("T")[0];
+  const pastDays   = useMemo(() => WEEK_DAYS.filter(d => d.date <= today), [WEEK_DAYS, today]);
+  const totalDays  = pastDays.length;
+
   const { days, totals, highest, lowest, avgCow, avgBuffalo, avgTotal } = useMemo(() => {
-    const days = WEEK.map(w => {
-      const entries = allEntries.filter(e => e.date === w.date);
-      const cow     = round1(entries.filter(e => e.animalType === "cow").reduce((s, e) => s + e.quantity, 0));
-      const buffalo = round1(entries.filter(e => e.animalType === "buffalo").reduce((s, e) => s + e.quantity, 0));
-      const total   = round1(cow + buffalo);
+    const days = WEEK_DAYS.map(w => {
+      const entries  = allEntries.filter(e => e.date === w.date);
+      const cow      = round1(entries.filter(e => e.animalType === "cow").reduce((s, e) => s + e.quantity, 0));
+      const buffalo  = round1(entries.filter(e => e.animalType === "buffalo").reduce((s, e) => s + e.quantity, 0));
+      const total    = round1(cow + buffalo);
       return { ...w, cow, buffalo, total };
     });
-    const totalCow     = round1(days.reduce((s, d) => s + d.cow, 0));
-    const totalBuffalo = round1(days.reduce((s, d) => s + d.buffalo, 0));
+    const activeDays   = days.filter(d => d.date <= today);
+    const totalCow     = round1(activeDays.reduce((s, d) => s + d.cow, 0));
+    const totalBuffalo = round1(activeDays.reduce((s, d) => s + d.buffalo, 0));
     const totalAll     = round1(totalCow + totalBuffalo);
-    const avgCow       = round1(totalCow / 7);
-    const avgBuffalo   = round1(totalBuffalo / 7);
-    const avgTotal     = round1(totalAll / 7);
-    const sorted  = [...days].sort((a, b) => b.total - a.total);
-    return { days, totals: { cow: totalCow, buffalo: totalBuffalo, all: totalAll }, highest: sorted[0], lowest: sorted[sorted.length - 1], avgCow, avgBuffalo, avgTotal };
-  }, [allEntries]);
+    const avgCow       = round1(totalDays > 0 ? totalCow     / totalDays : 0);
+    const avgBuffalo   = round1(totalDays > 0 ? totalBuffalo  / totalDays : 0);
+    const avgTotal     = round1(totalDays > 0 ? totalAll      / totalDays : 0);
+    const sorted       = [...activeDays].sort((a, b) => b.total - a.total);
+    return {
+      days,
+      totals: { cow: totalCow, buffalo: totalBuffalo, all: totalAll },
+      highest: sorted[0] ?? days[0],
+      lowest:  sorted[sorted.length - 1] ?? days[0],
+      avgCow, avgBuffalo, avgTotal,
+    };
+  }, [allEntries, WEEK_DAYS, today, totalDays]);
 
-  const chartW  = Math.max((screenW - 64) / 2, 260);
-  const barData  = days.map(d => ({ cow: d.cow, buffalo: d.buffalo, label: d.xLabel }));
-  const lineData = days.map(d => ({ total: d.total, label: d.xLabel }));
+  const chartW   = Math.max(WEEK_DAYS.length * 40 + 60, 300);
+  const barData  = WEEK_DAYS.map(d => { const day = days.find(x => x.date === d.date)!; return { cow: day.cow, buffalo: day.buffalo, label: d.xLabel }; });
+  const lineData = WEEK_DAYS.map(d => { const day = days.find(x => x.date === d.date)!; return { total: day.total, label: d.xLabel }; });
 
   function dayLabel(iso: string) {
-    return new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", month: "short", day: "numeric" });
   }
 
   function exportCSV() {
-    const headers = ["Date", "Cow Milk (L)", "Buffalo Milk (L)", "Total (L)", "Performance"];
-    const dataRows = days.map(d => [d.short, d.cow.toFixed(1), d.buffalo.toFixed(1), d.total.toFixed(1), d.total > 0 ? (d.total >= avgTotal ? "Above Avg" : "Below Avg") : "-"]);
+    const headers  = ["Date", "Cow Milk (L)", "Buffalo Milk (L)", "Total (L)", "Performance"];
+    const dataRows = WEEK_DAYS.map(d => {
+      const day = days.find(x => x.date === d.date)!;
+      return [d.short, day.cow.toFixed(1), day.buffalo.toFixed(1), day.total.toFixed(1),
+        day.total > 0 ? (day.total >= avgTotal ? "Above Avg" : "Below Avg") : "-"];
+    });
     dataRows.push(["Averages", avgCow.toFixed(1), avgBuffalo.toFixed(1), avgTotal.toFixed(1), ""]);
     const csv = [headers, ...dataRows].map(r => r.map(c => `"${c}"`).join(",")).join("\n");
     if (Platform.OS === "web") {
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
+      const url  = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url; link.setAttribute("download", "weekly_report.csv");
+      link.href  = url; link.setAttribute("download", `weekly_report_${WEEK_DAYS[0].date}.csv`);
       document.body.appendChild(link); link.click();
       document.body.removeChild(link); URL.revokeObjectURL(url);
     } else {
@@ -182,7 +220,7 @@ export default function WeeklyScreen() {
           shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12,
         }}>
           <Text style={{ fontSize: 22, fontWeight: "800", color: "#fff" }}>{t("weeklyReport")}</Text>
-          <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>Sat, Apr 18 – Fri, Apr 24</Text>
+          <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>{weekLabel}</Text>
         </View>
       </SafeAreaView>
 
@@ -246,21 +284,22 @@ export default function WeeklyScreen() {
                   <Text key={h} style={{ width: w, fontSize: 10, fontWeight: "600", color: C.gray500, letterSpacing: 0.5 }}>{h}</Text>
                 ))}
               </View>
-              {days.map((d, i) => {
-                const aboveAvg = d.total >= avgTotal && d.total > 0;
-                const hasData  = d.total > 0;
+              {WEEK_DAYS.map((d, i) => {
+                const day      = days.find(x => x.date === d.date)!;
+                const aboveAvg = day.total >= avgTotal && day.total > 0;
+                const hasData  = day.total > 0;
                 return (
                   <View key={d.date} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: i % 2 === 0 ? C.card : "#FAFAFA" }}>
                     <Text style={{ width: 130, fontSize: 13, color: C.gray700 }}>{d.short}</Text>
-                    <Text style={{ width: 110, fontSize: 13, fontWeight: "500", color: C.purple }}>{d.cow.toFixed(1)}L</Text>
-                    <Text style={{ width: 110, fontSize: 13, fontWeight: "500", color: C.purpleLight }}>{d.buffalo.toFixed(1)}L</Text>
-                    <Text style={{ width: 110, fontSize: 13, fontWeight: "600", color: C.gray900 }}>{d.total.toFixed(1)}L</Text>
+                    <Text style={{ width: 110, fontSize: 13, fontWeight: "500", color: C.purple }}>{day.cow.toFixed(1)}L</Text>
+                    <Text style={{ width: 110, fontSize: 13, fontWeight: "500", color: C.purpleLight }}>{day.buffalo.toFixed(1)}L</Text>
+                    <Text style={{ width: 110, fontSize: 13, fontWeight: "600", color: C.gray900 }}>{day.total.toFixed(1)}L</Text>
                     <View style={{ width: 120, flexDirection: "row", alignItems: "center" }}>
                       {hasData ? (
                         <><Text style={{ fontSize: 12, marginRight: 4 }}>{aboveAvg ? "📈" : "📉"}</Text>
                         <Text style={{ fontSize: 12, fontWeight: "600", color: aboveAvg ? C.green : C.red }}>{aboveAvg ? t("aboveAvg") : t("belowAvg")}</Text></>
                       ) : (
-                        <Text style={{ fontSize: 12, fontWeight: "600", color: C.red }}>{t("belowAvg")}</Text>
+                        <Text style={{ fontSize: 12, color: C.gray400 }}>—</Text>
                       )}
                     </View>
                   </View>
@@ -278,17 +317,17 @@ export default function WeeklyScreen() {
         </View>
 
         {/* Charts */}
-        <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
-          <View style={{ flex: 1, backgroundColor: C.card, borderRadius: 14, padding: 14, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 }}>
+        <View style={{ gap: 12, marginBottom: 20 }}>
+          <View style={{ backgroundColor: C.card, borderRadius: 14, padding: 14, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 }}>
             <Text style={{ fontSize: 13, fontWeight: "600", color: C.gray900, marginBottom: 8 }}>{t("dailyProduction")}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <BarChart data={barData} width={Math.max(chartW, 280)} />
+              <BarChart data={barData} width={chartW} />
             </ScrollView>
           </View>
-          <View style={{ flex: 1, backgroundColor: C.card, borderRadius: 14, padding: 14, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 }}>
+          <View style={{ backgroundColor: C.card, borderRadius: 14, padding: 14, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 }}>
             <Text style={{ fontSize: 13, fontWeight: "600", color: C.gray900, marginBottom: 8 }}>{t("totalProductionTrend")}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <LineChart data={lineData} width={Math.max(chartW, 280)} />
+              <LineChart data={lineData} width={chartW} />
             </ScrollView>
           </View>
         </View>
