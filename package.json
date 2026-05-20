@@ -1,0 +1,14 @@
+{
+  "name": "mms-monorepo",
+  "private": true,
+  "scripts": {
+    "dev":      "concurrently -n \"backend,frontend\" -c \"cyan,green\" \"npm run dev --prefix backend\" \"npm run web --prefix MilkManager\"",
+    "backend":  "npm run dev --prefix backend",
+    "frontend": "npm run web --prefix MilkManager",
+    "db:push":  "npm run db:push --prefix backend",
+    "db:seed":  "npm run db:seed --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

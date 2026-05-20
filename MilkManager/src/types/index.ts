@@ -8,7 +8,7 @@ export interface Farmer {
   address: string;
   animalType: AnimalType;
   active: boolean;
-  createdAt: string; // ISO date
+  createdAt: string;
 }
 
 // ─── Milk Collection ──────────────────────────────────────────────────────────
@@ -18,13 +18,25 @@ export interface MilkCollection {
   id: string;
   farmerId: string;
   farmerName: string;
-  date: string;       // YYYY-MM-DD
+  date: string;
   session: Session;
-  quantity: number;   // liters
-  fat: number;        // percentage
-  snf: number;        // percentage
-  rate: number;       // ₹ per liter
-  amount: number;     // quantity * rate
+  quantity: number;
+  fat: number;
+  snf: number;
+  rate: number;
+  amount: number;
+}
+
+// ─── Daily Entry ──────────────────────────────────────────────────────────────
+export interface DailyEntry {
+  id: string;
+  date: string;             // YYYY-MM-DD
+  animalType: "cow" | "buffalo";
+  animalName: string;
+  quantity: number;         // liters
+  rate: number;             // per liter
+  totalAmount: number;
+  notes?: string;
 }
 
 // ─── Payment ──────────────────────────────────────────────────────────────────
@@ -56,15 +68,11 @@ export interface DashboardStats {
 }
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
-export type RootTabParamList = {
-  Dashboard: undefined;
-  Farmers: undefined;
-  Collection: undefined;
-  Reports: undefined;
-};
-
-export type FarmersStackParamList = {
-  FarmersList: undefined;
-  AddFarmer: { farmer?: Farmer };
-  FarmerDetail: { farmerId: string };
+export type RootStackParamList = {
+  Dashboard:  undefined;
+  DailyEntry: undefined;
+  Weekly:     undefined;
+  Monthly:    undefined;
+  Yearly:     undefined;
+  Animals:    undefined;
 };

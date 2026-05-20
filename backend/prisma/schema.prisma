@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Animal {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String   // "cow" | "buffalo"
+  age       Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DailyEntry {
+  id          String   @id @default(cuid())
+  date        String   // YYYY-MM-DD
+  animalName  String
+  animalType  String   // "cow" | "buffalo"
+  quantity    Float
+  rate        Float
+  totalAmount Float
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

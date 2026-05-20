@@ -1,138 +1,190 @@
-import React from "react";
-import { ScrollView, View, SafeAreaView, TouchableOpacity } from "react-native";
-import { Text } from "../components/ui/Text";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
-import { Separator } from "../components/ui/Separator";
-import { getDashboardStats, COLLECTIONS } from "../data/mockData";
+import React, { useMemo } from "react";
+import { ScrollView, View, Text, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useData } from "../context/DataContext";
 
-function StatCard({
-  label,
-  value,
-  sub,
-  accent,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: boolean;
-}) {
+const C = {
+  primary:     "#7C3AED",
+  primaryDark: "#5B21B6",
+  bg:          "#F5F3FF",
+  card:        "#FFFFFF",
+  border:      "#E5E7EB",
+  text:        "#1F2937",
+  textSub:     "#6B7280",
+  green:       "#10B981",
+  red:         "#EF4444",
+  cow:         "#7C3AED",
+  buffalo:     "#4F46E5",
+};
+
+const TODAY     = new Date().toISOString().split("T")[0];
+const YESTERDAY = new Date(Date.now() - 86_400_000).toISOString().split("T")[0];
+const TODAY_LABEL = new Date().toLocaleDateString("en-IN", {
+  weekday: "long", month: "long", day: "numeric", year: "numeric",
+});
+
+export default function DashboardScreen() {
+  const { entries, loading } = useData();
+
+  const stats = useMemo(() => {
+    const sumCow = (d: string) => entries.filter(e => e.date === d && e.animalType === "cow").reduce((s, e) => s + e.quantity, 0);
+    const sumBuf = (d: string) => entries.filter(e => e.date === d && e.animalType === "buffalo").reduce((s, e) => s + e.quantity, 0);
+    const tCow = sumCow(TODAY), tBuf = sumBuf(TODAY), tTotal = tCow + tBuf;
+    const yCow = sumCow(YESTERDAY), yBuf = sumBuf(YESTERDAY), yTotal = yCow + yBuf;
+    return { tCow, tBuf, tTotal, yCow, yBuf, yTotal,
+      cowDiff: tCow - yCow, bufDiff: tBuf - yBuf, totalDiff: tTotal - yTotal };
+  }, [entries]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.primary, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  const dc = (d: number) => d >= 0 ? C.green : C.red;
+  const ds = (d: number) => d >= 0 ? "▲" : "▼";
+
   return (
-    <View
-      className={`flex-1 rounded-xl p-4 mr-2 ${accent ? "bg-blue-600" : "bg-white border border-gray-100"}`}
-      style={{ minWidth: 140, elevation: 2 }}
-    >
-      <Text className={`text-xs mb-1 ${accent ? "text-blue-100" : "text-gray-500"}`}>
-        {label}
-      </Text>
-      <Text className={`text-2xl font-bold ${accent ? "text-white" : "text-gray-900"}`}>
-        {value}
-      </Text>
-      {sub && (
-        <Text className={`text-xs mt-0.5 ${accent ? "text-blue-200" : "text-gray-400"}`}>
-          {sub}
-        </Text>
-      )}
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* ── Purple Header ── */}
+      <SafeAreaView style={{ backgroundColor: C.bg }} edges={["top"]}>
+        <View style={{
+          backgroundColor: C.primary, borderRadius: 24, marginHorizontal: 12, marginTop: 8,
+          overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4,
+          elevation: 8, shadowColor: C.primary,
+          shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12,
+        }}>
+          <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 2, letterSpacing: 0.4 }}>
+            {TODAY_LABEL}
+          </Text>
+          <Text style={{ fontSize: 24, fontWeight: "800", color: "#fff", letterSpacing: -0.5 }}>
+            🥛 Milk Manager
+          </Text>
+          <View style={{ marginTop: 18 }}>
+            <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>Today's Total Production</Text>
+            <View style={{ flexDirection: "row", alignItems: "flex-end", marginTop: 4 }}>
+              <Text style={{ fontSize: 52, fontWeight: "800", color: "#fff", letterSpacing: -2, lineHeight: 58 }}>
+                {stats.tTotal.toFixed(1)}
+              </Text>
+              <Text style={{ fontSize: 22, fontWeight: "500", color: "rgba(255,255,255,0.8)", marginBottom: 8, marginLeft: 4 }}>L</Text>
+            </View>
+            <Text style={{ fontSize: 12, color: dc(stats.totalDiff), backgroundColor: "rgba(255,255,255,0.15)", alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20, marginTop: 4, overflow: "hidden" }}>
+              {ds(stats.totalDiff)} {Math.abs(stats.totalDiff).toFixed(1)}L from yesterday
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Floating Stat Cards ── */}
+        <View style={{ flexDirection: "row", marginTop: 12, paddingHorizontal: 16, gap: 10 }}>
+          <View style={[styles.floatCard, { flex: 1, borderTopWidth: 3, borderTopColor: C.cow }]}>
+            <Text style={styles.floatLabel}>🐄 Cow Milk</Text>
+            <Text style={styles.floatVal}>{stats.tCow.toFixed(1)}<Text style={styles.floatUnit}> L</Text></Text>
+            <Text style={[styles.floatDiff, { color: dc(stats.cowDiff) }]}>
+              {ds(stats.cowDiff)} {Math.abs(stats.cowDiff).toFixed(1)}L
+            </Text>
+          </View>
+          <View style={[styles.floatCard, { flex: 1, borderTopWidth: 3, borderTopColor: C.buffalo }]}>
+            <Text style={styles.floatLabel}>🐃 Buffalo Milk</Text>
+            <Text style={styles.floatVal}>{stats.tBuf.toFixed(1)}<Text style={styles.floatUnit}> L</Text></Text>
+            <Text style={[styles.floatDiff, { color: dc(stats.bufDiff) }]}>
+              {ds(stats.bufDiff)} {Math.abs(stats.bufDiff).toFixed(1)}L
+            </Text>
+          </View>
+        </View>
+
+        {/* ── Yesterday Summary ── */}
+        <View style={{ paddingHorizontal: 16, marginTop: 20 }}>
+          <Text style={styles.sectionTitle}>YESTERDAY'S SUMMARY</Text>
+          <View style={[styles.card, { flexDirection: "row" }]}>
+            <YesterdayCol label="Cow"     value={stats.yCow}    diff={stats.cowDiff}   color={C.cow}     />
+            <View style={{ width: 1, backgroundColor: C.border, marginVertical: 8 }} />
+            <YesterdayCol label="Buffalo" value={stats.yBuf}    diff={stats.bufDiff}   color={C.buffalo} />
+            <View style={{ width: 1, backgroundColor: C.border, marginVertical: 8 }} />
+            <YesterdayCol label="Total"   value={stats.yTotal}  diff={stats.totalDiff} color={C.primary} />
+          </View>
+        </View>
+
+        {/* ── Quick Stats ── */}
+        <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+          <Text style={styles.sectionTitle}>QUICK INSIGHTS</Text>
+          <View style={[styles.card, { gap: 0 }]}>
+            <InsightRow icon="🐄" label="Cow share today"
+              value={stats.tTotal > 0 ? `${((stats.tCow / stats.tTotal) * 100).toFixed(0)}%` : "—"} />
+            <View style={{ height: 1, backgroundColor: C.border }} />
+            <InsightRow icon="🐃" label="Buffalo share today"
+              value={stats.tTotal > 0 ? `${((stats.tBuf / stats.tTotal) * 100).toFixed(0)}%` : "—"} />
+            <View style={{ height: 1, backgroundColor: C.border }} />
+            <InsightRow icon="📊" label="vs Yesterday (Total)"
+              value={stats.yTotal > 0 ? `${(((stats.tTotal - stats.yTotal) / stats.yTotal) * 100).toFixed(1)}%` : "—"}
+              valueColor={dc(stats.totalDiff)} />
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
-const today = new Date().toISOString().split("T")[0];
-const todayLabel = new Date().toLocaleDateString("mr-IN", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-});
-
-export default function DashboardScreen() {
-  const stats = getDashboardStats();
-  const todayCollections = COLLECTIONS.filter((c) => c.date === today);
-
+function YesterdayCol({ label, value, diff, color }: { label: string; value: number; diff: number; color: string }) {
+  const pos = diff >= 0;
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View className="bg-blue-600 px-5 pt-4 pb-6">
-        <Text className="text-blue-200 text-sm">आजची तारीख</Text>
-        <Text className="text-white text-xl font-bold mt-0.5">{todayLabel}</Text>
-        <Text className="text-blue-100 text-xs mt-1">Milk Manager</Text>
-      </View>
-
-      <ScrollView
-        className="-mt-3 flex-1 px-4"
-        contentContainerStyle={{ paddingBottom: 32 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Today Summary Cards */}
-        <View className="flex-row mt-4 mb-4">
-          <StatCard
-            label="आजचे एकूण दूध"
-            value={`${stats.todayTotalLiters.toFixed(1)} L`}
-            sub={`सकाळ ${stats.todayMorningLiters.toFixed(1)}L · सायं ${stats.todayEveningLiters.toFixed(1)}L`}
-            accent
-          />
-          <StatCard
-            label="आजची रक्कम"
-            value={`₹${stats.todayTotalAmount.toFixed(0)}`}
-            sub="आजचे देणे"
-          />
-        </View>
-
-        <View className="flex-row mb-5">
-          <StatCard
-            label="या महिन्यात"
-            value={`${stats.monthTotalLiters.toFixed(0)} L`}
-            sub="एकूण संकलन"
-          />
-          <StatCard
-            label="सक्रिय शेतकरी"
-            value={`${stats.activeFarmers}`}
-            sub={`${stats.pendingPayments} payments pending`}
-          />
-        </View>
-
-        <Separator className="mb-4" />
-
-        {/* Today's Collections */}
-        <Text variant="h4" className="text-gray-800 mb-3">
-          आजचे संकलन
-        </Text>
-
-        {todayCollections.length === 0 ? (
-          <Card>
-            <CardContent>
-              <Text variant="muted" className="text-center py-4">
-                आज अजून संकलन नोंद नाही
-              </Text>
-            </CardContent>
-          </Card>
-        ) : (
-          todayCollections.map((col) => (
-            <View
-              key={col.id}
-              className="bg-white rounded-xl mb-2 px-4 py-3 flex-row items-center justify-between"
-              style={{ elevation: 1 }}
-            >
-              <View className="flex-1">
-                <Text className="font-semibold text-gray-800">{col.farmerName}</Text>
-                <Text className="text-xs text-gray-500 mt-0.5">
-                  Fat: {col.fat}%  · SNF: {col.snf}%  · ₹{col.rate}/L
-                </Text>
-              </View>
-              <View className="items-end ml-3">
-                <Badge variant={col.session === "morning" ? "default" : "secondary"}>
-                  {col.session === "morning" ? "सकाळ" : "सायं"}
-                </Badge>
-                <Text className="text-base font-bold text-gray-900 mt-1">
-                  {col.quantity} L
-                </Text>
-                <Text className="text-xs text-green-600 font-medium">
-                  ₹{col.amount}
-                </Text>
-              </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
+    <View style={{ flex: 1, alignItems: "center", paddingVertical: 16 }}>
+      <View style={{ width: 32, height: 4, backgroundColor: color, borderRadius: 2, marginBottom: 10 }} />
+      <Text style={{ fontSize: 11, color: "#6B7280", marginBottom: 6 }}>{label} (Yesterday)</Text>
+      <Text style={{ fontSize: 20, fontWeight: "800", color: "#1F2937" }}>{value.toFixed(1)}L</Text>
+      <Text style={{ fontSize: 11, color: pos ? "#10B981" : "#EF4444", marginTop: 4, fontWeight: "600" }}>
+        {pos ? "+" : ""}{diff.toFixed(1)}L today
+      </Text>
+    </View>
   );
 }
+
+function InsightRow({ icon, label, value, valueColor }: { icon: string; label: string; value: string; valueColor?: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 14, paddingHorizontal: 16 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Text style={{ fontSize: 18 }}>{icon}</Text>
+        <Text style={{ fontSize: 14, color: "#374151" }}>{label}</Text>
+      </View>
+      <Text style={{ fontSize: 15, fontWeight: "700", color: valueColor ?? "#1F2937" }}>{value}</Text>
+    </View>
+  );
+}
+
+const styles = {
+  floatCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    elevation: 8,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+  },
+  floatLabel: { fontSize: 12, color: "#6B7280", fontWeight: "500" as const, marginBottom: 6 },
+  floatVal:   { fontSize: 26, fontWeight: "800" as const, color: "#1F2937" },
+  floatUnit:  { fontSize: 14, fontWeight: "500" as const },
+  floatDiff:  { fontSize: 12, fontWeight: "600" as const, marginTop: 6 },
+  sectionTitle: {
+    fontSize: 11, fontWeight: "700" as const, color: "#9CA3AF",
+    letterSpacing: 1, marginBottom: 10,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    overflow: "hidden" as const,
+  },
+};

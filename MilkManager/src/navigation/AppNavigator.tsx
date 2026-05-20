@@ -1,22 +1,20 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import DashboardScreen from "../screens/DashboardScreen";
-import FarmersScreen from "../screens/FarmersScreen";
-import CollectionScreen from "../screens/CollectionScreen";
-import ReportsScreen from "../screens/ReportsScreen";
-import type { RootTabParamList } from "../types";
+import { Home, ClipboardList, TrendingUp, Calendar, BarChart3, Beef } from "lucide-react-native";
 
-const Tab = createBottomTabNavigator<RootTabParamList>();
+import DashboardScreen  from "../screens/DashboardScreen";
+import DailyEntryScreen from "../screens/DailyEntryScreen";
+import WeeklyScreen     from "../screens/WeeklyScreen";
+import MonthlyScreen    from "../screens/MonthlyScreen";
+import YearlyScreen     from "../screens/YearlyScreen";
+import AnimalsScreen    from "../screens/AnimalsScreen";
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  return (
-    <View style={{ alignItems: "center", justifyContent: "center" }}>
-      <Text style={{ fontSize: focused ? 22 : 20 }}>{emoji}</Text>
-    </View>
-  );
-}
+const Tab = createBottomTabNavigator();
+
+const PRIMARY  = "#7C3AED";
+const INACTIVE = "#9CA3AF";
 
 export default function AppNavigator() {
   return (
@@ -24,54 +22,31 @@ export default function AppNavigator() {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
+          tabBarActiveTintColor: PRIMARY,
+          tabBarInactiveTintColor: INACTIVE,
           tabBarStyle: {
-            backgroundColor: "#ffffff",
-            borderTopColor: "#e5e7eb",
+            backgroundColor: "#FFFFFF",
             borderTopWidth: 1,
-            height: 60,
-            paddingBottom: 8,
-            paddingTop: 4,
+            borderTopColor: "#E5E7EB",
+            paddingBottom: Platform.OS === "ios" ? 20 : 6,
+            paddingTop: 6,
+            height: Platform.OS === "ios" ? 84 : 60,
           },
-          tabBarActiveTintColor: "#2563eb",
-          tabBarInactiveTintColor: "#9ca3af",
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: "600",
-          },
+          tabBarLabelStyle: { fontSize: 10, fontWeight: "600", marginTop: 1 },
         }}
       >
-        <Tab.Screen
-          name="Dashboard"
-          component={DashboardScreen}
-          options={{
-            tabBarLabel: "डॅशबोर्ड",
-            tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
-          }}
-        />
-        <Tab.Screen
-          name="Collection"
-          component={CollectionScreen}
-          options={{
-            tabBarLabel: "संकलन",
-            tabBarIcon: ({ focused }) => <TabIcon emoji="🥛" focused={focused} />,
-          }}
-        />
-        <Tab.Screen
-          name="Farmers"
-          component={FarmersScreen}
-          options={{
-            tabBarLabel: "शेतकरी",
-            tabBarIcon: ({ focused }) => <TabIcon emoji="👨‍🌾" focused={focused} />,
-          }}
-        />
-        <Tab.Screen
-          name="Reports"
-          component={ReportsScreen}
-          options={{
-            tabBarLabel: "अहवाल",
-            tabBarIcon: ({ focused }) => <TabIcon emoji="📊" focused={focused} />,
-          }}
-        />
+        <Tab.Screen name="Dashboard"  component={DashboardScreen}
+          options={{ tabBarLabel: "Home",    tabBarIcon: ({ color, size }) => <Home         color={color} size={size - 2} /> }} />
+        <Tab.Screen name="DailyEntry" component={DailyEntryScreen}
+          options={{ tabBarLabel: "Entries", tabBarIcon: ({ color, size }) => <ClipboardList color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Weekly"     component={WeeklyScreen}
+          options={{ tabBarLabel: "Weekly",  tabBarIcon: ({ color, size }) => <TrendingUp   color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Monthly"    component={MonthlyScreen}
+          options={{ tabBarLabel: "Monthly", tabBarIcon: ({ color, size }) => <Calendar     color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Yearly"     component={YearlyScreen}
+          options={{ tabBarLabel: "Yearly",  tabBarIcon: ({ color, size }) => <BarChart3    color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Animals"    component={AnimalsScreen}
+          options={{ tabBarLabel: "Animals", tabBarIcon: ({ color, size }) => <Beef         color={color} size={size - 2} /> }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
