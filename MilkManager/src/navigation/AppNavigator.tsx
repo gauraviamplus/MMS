@@ -2,7 +2,7 @@ import React from "react";
 import { Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Home, ClipboardList, TrendingUp, Calendar, BarChart3, Beef } from "lucide-react-native";
+import { Home, ClipboardList, TrendingUp, Calendar, BarChart3 } from "lucide-react-native";
 import { useLanguage } from "../context/LanguageContext";
 
 import DashboardScreen  from "../screens/DashboardScreen";
@@ -10,7 +10,6 @@ import DailyEntryScreen from "../screens/DailyEntryScreen";
 import WeeklyScreen     from "../screens/WeeklyScreen";
 import MonthlyScreen    from "../screens/MonthlyScreen";
 import YearlyScreen     from "../screens/YearlyScreen";
-import AnimalsScreen    from "../screens/AnimalsScreen";
 
 const Tab = createBottomTabNavigator();
 const PRIMARY  = "#7C3AED";
@@ -47,8 +46,6 @@ export default function AppNavigator() {
           options={{ tabBarLabel: t("tabMonthly"), tabBarIcon: ({ color, size }) => <Calendar     color={color} size={size - 2} /> }} />
         <Tab.Screen name="Yearly"     component={YearlyScreen}
           options={{ tabBarLabel: t("tabYearly"),  tabBarIcon: ({ color, size }) => <BarChart3    color={color} size={size - 2} /> }} />
-        <Tab.Screen name="Animals"    component={AnimalsScreen}
-          options={{ tabBarLabel: t("tabAnimals"), tabBarIcon: ({ color, size }) => <Beef         color={color} size={size - 2} /> }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

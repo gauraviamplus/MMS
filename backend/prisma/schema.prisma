@@ -21,6 +21,7 @@ model DailyEntry {
   date        String   // YYYY-MM-DD
   animalName  String
   animalType  String   // "cow" | "buffalo"
+  session     String   @default("morning")  // "morning" | "evening"
   quantity    Float
   rate        Float
   totalAmount Float

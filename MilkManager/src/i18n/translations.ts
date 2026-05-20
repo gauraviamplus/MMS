@@ -33,6 +33,8 @@ const en = {
   errorEnterAge: "Enter valid age.",
   errorSaveFailed: "Failed to save. Is the backend running?",
   errorDeleteFailed: "Failed to delete.",
+  // Session
+  morning: "Morning", evening: "Evening", session: "Session",
   // Daily Entry
   dailyEntries: "Daily Entries", totalRecords: "total records", newEntry: "New Entry",
   noEntriesYet: "No Entries Yet", tapNewEntry: 'Tap "New Entry" to record milk',
@@ -97,6 +99,7 @@ export const translations: Record<Language, typeof en> = {
     errorEnterAge: "वैध आयु दर्ज करें।",
     errorSaveFailed: "सहेजने में विफल। क्या बैकएंड चल रहा है?",
     errorDeleteFailed: "हटाने में विफल।",
+    morning: "सुबह", evening: "शाम", session: "सत्र",
     dailyEntries: "दैनिक प्रविष्टियाँ", totalRecords: "कुल रिकॉर्ड", newEntry: "नई प्रविष्टि",
     noEntriesYet: "अभी कोई प्रविष्टि नहीं", tapNewEntry: '"नई प्रविष्टि" दबाकर दूध दर्ज करें',
     noAnimalsFound: "कोई पशु नहीं मिला। पहले पशु टैब से पशु जोड़ें।",
@@ -152,6 +155,7 @@ export const translations: Record<Language, typeof en> = {
     errorEnterAge: "योग्य वय टाका.",
     errorSaveFailed: "जतन अयशस्वी. बॅकएंड चालू आहे का?",
     errorDeleteFailed: "हटवणे अयशस्वी.",
+    morning: "सकाळ", evening: "संध्याकाळ", session: "वेळ",
     dailyEntries: "दैनंदिन नोंदी", totalRecords: "एकूण नोंदी", newEntry: "नवीन नोंद",
     noEntriesYet: "अजून नोंदी नाहीत", tapNewEntry: '"नवीन नोंद" दाबून दूध नोंदवा',
     noAnimalsFound: "जनावरे सापडली नाहीत. आधी जनावरे टॅबमधून जनावरे जोडा.",

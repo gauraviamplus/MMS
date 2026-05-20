@@ -8,7 +8,6 @@ import { Plus, Pencil, Trash2, ClipboardList } from "lucide-react-native";
 import { useData } from "../context/DataContext";
 import { useLanguage } from "../context/LanguageContext";
 import type { DailyEntry } from "../types";
-import type { Animal } from "../data/animalsData";
 
 const C = {
   primary:    "#7C3AED",
@@ -59,9 +58,17 @@ function EntryCard({ entry, onEdit, onDelete }: {
                 <Text style={{ fontSize: 11, fontWeight: "700", color: C.textSub }}>{fmtDay(entry.date)}</Text>
                 <Text style={{ fontSize: 13, fontWeight: "700", color: C.text }}>{fmtDate(entry.date)}</Text>
               </View>
-              <View style={{ backgroundColor: isCow ? C.cowBg : C.bufBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
-                <Text style={{ fontSize: 11, fontWeight: "700", color: isCow ? C.cowText : C.bufText, textTransform: "uppercase" }}>
+              <View style={{ backgroundColor: isCow ? C.cowBg : C.bufBg, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 }}>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: isCow ? C.cowText : C.bufText }}>
                   {isCow ? `🐄 ${t("cow")}` : `🐃 ${t("buffalo")}`}
+                </Text>
+              </View>
+              <View style={{
+                backgroundColor: entry.session === "morning" ? "#FEF3C7" : "#EEF2FF",
+                paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20,
+              }}>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: entry.session === "morning" ? "#D97706" : "#6366F1" }}>
+                  {entry.session === "morning" ? `🌅 ${t("morning")}` : `🌙 ${t("evening")}`}
                 </Text>
               </View>
             </View>
@@ -70,11 +77,12 @@ function EntryCard({ entry, onEdit, onDelete }: {
 
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View>
-              <Text style={{ fontSize: 15, fontWeight: "800", color: C.text }}>{entry.animalName}</Text>
-              <Text style={{ fontSize: 12, color: C.textSub, marginTop: 2 }}>
-                {entry.quantity.toFixed(1)}L × ₹{entry.rate.toFixed(0)}/L
+              <Text style={{ fontSize: 15, fontWeight: "800", color: C.text }}>
+                {entry.quantity.toFixed(1)}L
               </Text>
-              {entry.notes ? <Text style={{ fontSize: 11, color: C.gray400, marginTop: 3, fontStyle: "italic" }}>{entry.notes}</Text> : null}
+              <Text style={{ fontSize: 12, color: C.textSub, marginTop: 2 }}>
+                ₹{entry.rate.toFixed(0)}/L
+              </Text>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <TouchableOpacity onPress={() => onEdit(entry)}
@@ -94,67 +102,54 @@ function EntryCard({ entry, onEdit, onDelete }: {
 }
 
 // ─── Entry Modal ──────────────────────────────────────────────────────────────
-function EntryModal({ visible, initial, animals, onSave, onClose }: {
-  visible: boolean; initial?: DailyEntry; animals: Animal[];
+function EntryModal({ visible, initial, onSave, onClose }: {
+  visible: boolean; initial?: DailyEntry;
   onSave: (e: Omit<DailyEntry, "id">) => Promise<void>; onClose: () => void;
 }) {
   const { t } = useLanguage();
-  const [date,      setDate]      = useState(initial?.date ?? new Date().toISOString().split("T")[0]);
-  const [animalIdx, setAnimalIdx] = useState(() => Math.max(0, animals.findIndex(a => a.name === initial?.animalName)));
-  const [quantity,  setQuantity]  = useState(initial?.quantity?.toString() ?? "");
-  const [rate,      setRate]      = useState(() => {
-    const idx = Math.max(0, animals.findIndex(a => a.name === initial?.animalName));
-    return (initial?.rate ?? (animals[idx]?.type === "cow" ? 35 : 30)).toString();
-  });
-  const [notes,   setNotes]   = useState(initial?.notes ?? "");
-  const [saving,  setSaving]  = useState(false);
-
-  const animal = animals[animalIdx] ?? animals[0];
+  const [date,       setDate]      = useState(initial?.date ?? new Date().toISOString().split("T")[0]);
+  const [animalType, setAnimalType] = useState<"cow" | "buffalo">(initial?.animalType ?? "cow");
+  const [session,    setSession]   = useState<"morning" | "evening">(initial?.session ?? "morning");
+  const [quantity,   setQuantity]  = useState(initial?.quantity?.toString() ?? "");
+  const [rate,       setRate]      = useState(initial?.rate?.toString() ?? "35");
+  const [notes,      setNotes]     = useState(initial?.notes ?? "");
+  const [saving,     setSaving]    = useState(false);
 
   React.useEffect(() => {
-    if (visible && animals.length > 0) {
-      const idx = Math.max(0, animals.findIndex(a => a.name === initial?.animalName));
+    if (visible) {
       setDate(initial?.date ?? new Date().toISOString().split("T")[0]);
-      setAnimalIdx(idx);
+      setAnimalType(initial?.animalType ?? "cow");
+      setSession(initial?.session ?? "morning");
       setQuantity(initial?.quantity?.toString() ?? "");
-      setRate((initial?.rate ?? (animals[idx]?.type === "cow" ? 35 : 30)).toString());
+      setRate(initial?.rate?.toString() ?? "35");
       setNotes(initial?.notes ?? "");
       setSaving(false);
     }
-  }, [visible, initial, animals]);
+  }, [visible, initial]);
 
-  function handleAnimalChange(i: number) {
-    setAnimalIdx(i);
-    setRate((animals[i].type === "cow" ? 35 : 30).toString());
+  function handleTypeChange(type: "cow" | "buffalo") {
+    setAnimalType(type);
+    setRate(type === "cow" ? "35" : "30");
   }
 
   async function handleSave() {
     const qty = parseFloat(quantity), r = parseFloat(rate);
     if (!date || isNaN(qty) || qty <= 0) { Alert.alert(t("error"), t("errorValidDate")); return; }
-    if (isNaN(r) || r <= 0)             { Alert.alert(t("error"), t("errorValidRate")); return; }
-    if (!animal)                         { Alert.alert(t("error"), t("errorSelectAnimal")); return; }
+    if (isNaN(r) || r <= 0)              { Alert.alert(t("error"), t("errorValidRate")); return; }
     setSaving(true);
     try {
-      await onSave({ date, animalType: animal.type as "cow" | "buffalo",
-        animalName: animal.name, quantity: qty, rate: r,
-        totalAmount: Math.round(qty * r * 100) / 100, notes: notes.trim() || undefined });
+      await onSave({
+        date,
+        animalType,
+        animalName: animalType,
+        session,
+        quantity: qty,
+        rate: r,
+        totalAmount: Math.round(qty * r * 100) / 100,
+        notes: notes.trim() || undefined,
+      });
     } catch { Alert.alert(t("error"), t("errorSaveFailed")); }
     finally { setSaving(false); }
-  }
-
-  if (animals.length === 0) {
-    return (
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: C.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 36 }}>
-            <Text style={{ fontSize: 15, color: C.text, marginBottom: 20 }}>{t("noAnimalsFound")}</Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: 14, alignItems: "center", borderRadius: 14, backgroundColor: C.primary }}>
-              <Text style={{ color: "#fff", fontWeight: "700" }}>{t("close")}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
   }
 
   return (
@@ -168,19 +163,39 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
           </Text>
 
           <Text style={s.label}>{t("dateLabel")}</Text>
-          <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="2026-04-24" placeholderTextColor={C.gray400} />
+          <TextInput style={s.input} value={date} onChangeText={setDate} placeholder="2026-05-20" placeholderTextColor={C.gray400} />
 
-          <Text style={s.label}>{t("selectAnimal")}</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-            {animals.map((a, i) => (
-              <TouchableOpacity key={a.id} onPress={() => handleAnimalChange(i)}
+          <Text style={s.label}>{t("type")}</Text>
+          <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
+            {(["cow", "buffalo"] as const).map(tp => (
+              <TouchableOpacity key={tp} onPress={() => handleTypeChange(tp)}
                 style={{
-                  paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                  backgroundColor: animalIdx === i ? C.primary : C.gray100,
-                  borderWidth: 2, borderColor: animalIdx === i ? C.primary : "transparent",
+                  flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: "center",
+                  flexDirection: "row", justifyContent: "center", gap: 6,
+                  backgroundColor: animalType === tp ? (tp === "cow" ? C.primary : "#4F46E5") : C.gray100,
+                  borderWidth: 2, borderColor: animalType === tp ? (tp === "cow" ? C.primary : "#4F46E5") : "transparent",
                 }}>
-                <Text style={{ fontSize: 13, fontWeight: "700", color: animalIdx === i ? "#fff" : C.gray700 }}>
-                  {a.type === "cow" ? "🐄" : "🐃"} {a.name}
+                <Text style={{ fontSize: 18 }}>{tp === "cow" ? "🐄" : "🐃"}</Text>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: animalType === tp ? "#fff" : C.gray700 }}>
+                  {tp === "cow" ? t("cow") : t("buffalo")}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={s.label}>{t("session")}</Text>
+          <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
+            {(["morning", "evening"] as const).map(sess => (
+              <TouchableOpacity key={sess} onPress={() => setSession(sess)}
+                style={{
+                  flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: "center",
+                  flexDirection: "row", justifyContent: "center", gap: 6,
+                  backgroundColor: session === sess ? (sess === "morning" ? "#F59E0B" : "#6366F1") : C.gray100,
+                  borderWidth: 2, borderColor: session === sess ? (sess === "morning" ? "#F59E0B" : "#6366F1") : "transparent",
+                }}>
+                <Text style={{ fontSize: 18 }}>{sess === "morning" ? "🌅" : "🌙"}</Text>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: session === sess ? "#fff" : C.gray700 }}>
+                  {sess === "morning" ? t("morning") : t("evening")}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -193,7 +208,7 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={s.label}>{t("quantityLabel")}</Text>
-              <TextInput style={s.input} value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" placeholder="125.5" placeholderTextColor={C.gray400} />
+              <TextInput style={s.input} value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" placeholder="10.5" placeholderTextColor={C.gray400} />
             </View>
           </View>
 
@@ -205,10 +220,6 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
               </Text>
             </View>
           )}
-
-          <Text style={s.label}>{t("notesOptional")}</Text>
-          <TextInput style={[s.input, { marginBottom: 24 }]} value={notes} onChangeText={setNotes}
-            placeholder="e.g. Morning milking" placeholderTextColor={C.gray400} />
 
           <View style={{ flexDirection: "row", gap: 12 }}>
             <TouchableOpacity onPress={onClose}
@@ -228,7 +239,7 @@ function EntryModal({ visible, initial, animals, onSave, onClose }: {
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function DailyEntryScreen() {
-  const { entries, animals, addEntry, updateEntry, removeEntry, loading } = useData();
+  const { entries, addEntry, updateEntry, removeEntry, loading } = useData();
   const { t } = useLanguage();
   const [modalOpen,  setModalOpen]  = useState(false);
   const [editTarget, setEditTarget] = useState<DailyEntry | undefined>();
@@ -307,7 +318,7 @@ export default function DailyEntryScreen() {
         )}
       </ScrollView>
 
-      <EntryModal visible={modalOpen} initial={editTarget} animals={animals}
+      <EntryModal visible={modalOpen} initial={editTarget}
         onSave={handleSave}
         onClose={() => { setModalOpen(false); setEditTarget(undefined); }} />
     </View>

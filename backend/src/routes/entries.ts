@@ -9,26 +9,26 @@ router.get("/", async (_req: Request, res: Response) => {
 });
 
 router.post("/", async (req: Request, res: Response) => {
-  const { date, animalName, animalType, quantity, rate, totalAmount, notes } =
+  const { date, animalName, animalType, session, quantity, rate, totalAmount, notes } =
     req.body as {
-      date: string; animalName: string; animalType: string;
+      date: string; animalName: string; animalType: string; session: string;
       quantity: number; rate: number; totalAmount: number; notes?: string;
     };
   const entry = await prisma.dailyEntry.create({
-    data: { date, animalName, animalType, quantity, rate, totalAmount, notes },
+    data: { date, animalName, animalType, session: session ?? "morning", quantity, rate, totalAmount, notes },
   });
   res.status(201).json(entry);
 });
 
 router.put("/:id", async (req: Request, res: Response) => {
-  const { date, animalName, animalType, quantity, rate, totalAmount, notes } =
+  const { date, animalName, animalType, session, quantity, rate, totalAmount, notes } =
     req.body as {
-      date: string; animalName: string; animalType: string;
+      date: string; animalName: string; animalType: string; session: string;
       quantity: number; rate: number; totalAmount: number; notes?: string;
     };
   const entry = await prisma.dailyEntry.update({
     where: { id: req.params.id },
-    data:  { date, animalName, animalType, quantity, rate, totalAmount, notes },
+    data:  { date, animalName, animalType, session: session ?? "morning", quantity, rate, totalAmount, notes },
   });
   res.json(entry);
 });

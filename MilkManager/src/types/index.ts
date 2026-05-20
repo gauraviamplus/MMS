@@ -33,6 +33,7 @@ export interface DailyEntry {
   date: string;             // YYYY-MM-DD
   animalType: "cow" | "buffalo";
   animalName: string;
+  session: "morning" | "evening";
   quantity: number;         // liters
   rate: number;             // per liter
   totalAmount: number;
