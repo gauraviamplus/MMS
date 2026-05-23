@@ -2,9 +2,10 @@ import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DailyEntry, Expense } from "../types";
 
-const host =
-  Constants.expoConfig?.hostUri?.split(":")[0] ?? "localhost";
-const BASE_URL = `http://${host}:3000/api`;
+const PROD_URL = "https://mms-production-dc19.up.railway.app/api";
+const isDev = __DEV__;
+const host = Constants.expoConfig?.hostUri?.split(":")[0] ?? "localhost";
+const BASE_URL = isDev ? `http://${host}:3000/api` : PROD_URL;
 
 async function req<T>(path: string, options?: RequestInit): Promise<T> {
   const token = await AsyncStorage.getItem("auth_token");
