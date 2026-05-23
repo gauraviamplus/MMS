@@ -1,5 +1,7 @@
+# cache-bust: v2 — force fresh build
 [phases.setup]
 aptPkgs = [
+  "chromium",
   "libglib2.0-0",
   "libnss3",
   "libatk1.0-0",
@@ -16,6 +18,7 @@ aptPkgs = [
   "libx11-6",
   "libxcb1",
   "libxext6",
+  "libx11-xcb1",
   "fonts-liberation",
   "ca-certificates"
 ]

@@ -1,9 +1,33 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
+import fs from "fs";
+import path from "path";
 
 let client: Client | null = null;
 let ready = false;
 let reinitTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Remove Chrome singleton-lock files left by a previous/crashed/foreign session */
+function clearChromeLocks() {
+  const sessionDir = path.resolve(".wwebjs_auth", "session");
+  const toDelete = [
+    path.join(sessionDir, "SingletonLock"),
+    path.join(sessionDir, "SingletonCookie"),
+    path.join(sessionDir, "SingletonSocket"),
+    path.join(sessionDir, "DevToolsActivePort"),
+    path.join(sessionDir, "Default", "LOCK"),
+  ];
+  for (const f of toDelete) {
+    try {
+      // lstatSync works on symlinks too (unlike existsSync which follows them)
+      fs.lstatSync(f);
+      fs.unlinkSync(f);
+      console.log(`🗑️   Cleared stale lock: ${path.basename(f)}`);
+    } catch {
+      /* file doesn't exist – fine */
+    }
+  }
+}
 
 function createClient(): Client {
   return new Client({
@@ -17,7 +41,8 @@ function createClient(): Client {
         "--disable-dev-shm-usage",
         "--no-first-run",
         "--no-zygote",
-        "--single-process",
+        "--disable-extensions",
+        "--disable-background-networking",
       ],
     },
   });
@@ -34,6 +59,7 @@ function scheduleReinit() {
 
 function startClient() {
   ready = false;
+  clearChromeLocks();   // ← remove any stale profile locks before launch
   client = createClient();
 
   client.on("qr", (qr) => {
