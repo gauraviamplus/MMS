@@ -1,7 +1,0 @@
-2026/05/20-22:02:13.459 2ecc68 Reusing MANIFEST /Users/admin/Documents/Workspace/MMS/Untitled/MMS/backend/.wwebjs_auth/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/05/20-22:02:13.461 2ecc68 Recovering log #426
-2026/05/20-22:02:13.504 2ecc68 Reusing old log /Users/admin/Documents/Workspace/MMS/Untitled/MMS/backend/.wwebjs_auth/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000426.log 
-2026/05/20-22:02:18.068 2ecc6a Compacting 1@1 + 2@2 files
-2026/05/20-22:02:18.199 2ecc6a Generated table #442@1: 94602 keys, 2188324 bytes
-2026/05/20-22:02:18.199 2ecc6a Compacted 1@1 + 2@2 files => 2188324 bytes
-2026/05/20-22:02:18.201 2ecc6a compacted to: files[ 0 0 12 0 0 0 0 ]
