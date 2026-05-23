@@ -7,25 +7,16 @@ let client: Client | null = null;
 let ready = false;
 let reinitTimer: ReturnType<typeof setTimeout> | null = null;
 
-/** Remove Chrome singleton-lock files left by a previous/crashed/foreign session */
-function clearChromeLocks() {
-  const sessionDir = path.resolve(".wwebjs_auth", "session");
-  const toDelete = [
-    path.join(sessionDir, "SingletonLock"),
-    path.join(sessionDir, "SingletonCookie"),
-    path.join(sessionDir, "SingletonSocket"),
-    path.join(sessionDir, "DevToolsActivePort"),
-    path.join(sessionDir, "Default", "LOCK"),
-  ];
-  for (const f of toDelete) {
-    try {
-      // lstatSync works on symlinks too (unlike existsSync which follows them)
-      fs.lstatSync(f);
-      fs.unlinkSync(f);
-      console.log(`🗑️   Cleared stale lock: ${path.basename(f)}`);
-    } catch {
-      /* file doesn't exist – fine */
+/** Delete entire .wwebjs_auth folder so Chrome always starts fresh */
+function nukeAuthData() {
+  const dir = path.resolve(".wwebjs_auth");
+  try {
+    if (fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      console.log("🗑️   Cleared .wwebjs_auth — fresh Chrome profile");
     }
+  } catch (err) {
+    console.warn("Could not clear .wwebjs_auth:", err);
   }
 }
 
@@ -59,7 +50,7 @@ function scheduleReinit() {
 
 function startClient() {
   ready = false;
-  clearChromeLocks();   // ← remove any stale profile locks before launch
+  nukeAuthData();        // ← always wipe old/stale profile before launch
   client = createClient();
 
   client.on("qr", (qr) => {
@@ -84,7 +75,6 @@ function startClient() {
   });
 }
 
-// On ts-node-dev restart, destroy old browser cleanly
 process.on("SIGTERM", () => client?.destroy().catch(() => {}));
 process.on("exit",    () => client?.destroy().catch(() => {}));
 
@@ -111,7 +101,6 @@ export async function sendOTP(phone: string, otp: string): Promise<boolean> {
     console.log(`✅  OTP sent via WhatsApp to ${phone}`);
     return true;
   } catch (err: any) {
-    // Detached frame = browser restarted, reinitialize
     if (err?.message?.includes("detached") || err?.message?.includes("Session closed")) {
       ready = false;
       scheduleReinit();
