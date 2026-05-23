@@ -6,11 +6,13 @@ let ready = false;
 let reinitTimer: ReturnType<typeof setTimeout> | null = null;
 
 function createClient(): Client {
+  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
   return new Client({
     authStrategy: new LocalAuth({ dataPath: ".wwebjs_auth" }),
     puppeteer: {
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--disable-dev-shm-usage"],
+      ...(executablePath ? { executablePath } : {}),
     },
   });
 }
